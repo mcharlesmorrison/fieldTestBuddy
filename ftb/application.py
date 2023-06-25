@@ -2,7 +2,7 @@
 
 import argon2 as ag
 
-from flask import Flask, render_template, redirect, url_for, flash, session
+from flask import Flask, render_template, redirect, url_for, flash, session, request
 
 from forms import LoginForm, CreateFieldTestForm
 
@@ -54,7 +54,7 @@ def login():
             return redirect(url_for("home"))
 
         if ph.check_needs_rehash(user_hash):
-            ph.hash(password)
+            ph.hash(form.password.data)
             # do somethign like `db.set_password_hash_for_user(user, new_hash)`
 
         # set user session (keeps them logged in etc)
@@ -101,11 +101,26 @@ def create_field_test():
 
     form = CreateFieldTestForm()
     if form.validate_on_submit():
-        print(request)
+        # TODO do i have to escape here?
+        field_names = request.form.getlist("field_name[]")
+        field_types = request.form.getlist("field_type[]")
+        default_values = [
+            None if val == "" else [v.strip() for v in val.split(",")]
+            for val in request.form.getlist("default_value[]")
+        ]
+        required = [
+            is_required == "true" for is_required in request.form.getlist("required[]")
+        ]
+        # these fields here are the ones that the admin sets for the field test
+        field_test_defn = list(zip(field_names, field_types, default_values, required))
+        application.logger.info(
+            f"field test defn created by {session['username']}: {field_test_defn}"
+        )
         flash("Field Test Created!", "success")
+        # TODO add field test to db, etc
         return redirect(url_for("home"))
 
-    return render_template("create_field_test.html", form=form)
+    return render_template("field_tester_pages/create_field_test.html", form=form)
 
 
 if __name__ == "__main__":

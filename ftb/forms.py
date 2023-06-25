@@ -75,4 +75,5 @@ class CreateFieldTestForm(FlaskForm):
     https://www.rmedgar.com/blog/dynamic-fields-flask-wtf/
     """
 
-    field_test_type = StringField("field_test_type", validators=[DataRequired()])
+    field_test_type = StringField("field test type", validators=[DataRequired()])
+    submit = SubmitField("submit")
