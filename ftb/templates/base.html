@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<!-- This is the "base" html file - should define the header and footer, basic nav, etc.  This is the file that all other html files should extend. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %} {% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block body %}{% endblock %}
+    <footer>
+        <p>Footer</p>
+    </footer>
+</body>
+</html>
