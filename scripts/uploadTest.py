@@ -33,8 +33,10 @@ metadata3 = dict(projectName=projectName, fieldTestName = fieldTestName,
                     sensorIDs=sensorIDs, sensorPositions=sensorPositions, notes=notes,  rotLogger=rotLogger)
 
 """ FTB UPLOADING TO DB """
-# postData = [metadata1, metadata2, metadata3] 
+postData = [metadata1, metadata2, metadata3] 
 userType = "ftb_engineer_admin"
+# userType = "ftb_field_tester"
+
 # userType = "cassloggeradmin"
 
 # filepath = "/Users/mattmorrison/Desktop/ftb/foxExports"
