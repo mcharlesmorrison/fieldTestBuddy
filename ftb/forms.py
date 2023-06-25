@@ -59,8 +59,8 @@ class FieldTestForm(FlaskForm):
     only mandatory field (for now) is the field test type.
     """
 
-    # field defined from the field test type
     field_test_type = SelectField("field_test_type", choices=[])
+    submit = SubmitField("submit")
 
 
 class CreateFieldTestForm(FlaskForm):

@@ -6,7 +6,12 @@ from flask import Flask, render_template, redirect, url_for, flash, session, req
 
 from typing import Dict, List, Any
 
-from forms import LoginForm, CreateFieldTestForm
+from forms import LoginForm, CreateFieldTestForm, FieldTestForm
+
+
+"""
+this file is SO messsy must be refactored
+"""
 
 
 application = Flask(__name__)
@@ -19,9 +24,11 @@ application.secret_key = "i am a secret key"
 
 User = Dict[str, Any]
 
+mock_field_test_defn_db: Dict[str, List[Any]] = dict()
 mock_field_test_db: Dict[str, List[Any]] = dict()
 mock_user_db: Dict[str, User] = dict()
 
+mock_field_test_defn_db["casslabs"] = ["test", "integer", None, True]
 mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslabs"}
 
 
@@ -132,11 +139,47 @@ def create_field_test():
         )
         flash("Field Test Created!", "success")
         # TODO add field test to db, etc
-        mock_field_test_db[form.field_test_type.data] = field_test_defn
-        print(mock_field_test_db)
+        mock_field_test_defn_db[form.field_test_type.data] = field_test_defn
+        print(mock_field_test_defn_db)
         return redirect(url_for("home"))
 
     return render_template("field_tester_pages/create_field_test.html", form=form)
+
+
+@application.route("/field_test/upload_field_test", methods=["GET", "POST"])
+def upload_field_test():
+    """
+    this is "U1" in the wireframes
+    """
+
+    if "username" not in session:
+        flash("You must be logged in and an admin to upload a field test", "danger")
+        return redirect(url_for("login"))
+
+    application.logger.info(f"{session['username']} is uploading a field test")
+
+    field_test_form = FieldTestForm()
+
+    field_test_types = list(mock_field_test_defn_db.keys())
+
+    field_test_form.field_test_type.choices = field_test_types
+
+    if field_test_form.validate_on_submit():
+        # TODO do i have to escape here?
+        field_test_type = field_test_form.field_test_type.data
+        # TODO check that field_test_type is actually in db, though it should always since this is fm dropdown
+        mock_field_test_defn_db[field_test_type]
+        # TODO add field test to db, etc
+        flash("Field Test Selected!", "success")
+        return redirect(url_for("home"))
+    else:
+        # log form errors
+        application.logger.error(f"form errors: {field_test_form.errors}")
+        field_test_types = list(mock_field_test_defn_db.keys())
+        application.logger.info(f"field tests: {field_test_types}")
+        return render_template(
+            "field_tester_pages/field_test_selector.html", form=field_test_form
+        )
 
 
 if __name__ == "__main__":
