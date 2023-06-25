@@ -4,7 +4,7 @@ import argon2 as ag
 
 from flask import Flask, render_template, redirect, url_for, flash, session, request
 
-from typing import Dict, List, Tuple, Optional, Any
+from typing import Dict, List, Any
 
 from forms import LoginForm, CreateFieldTestForm
 
@@ -28,7 +28,6 @@ mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslab
 def is_user_admin(username: str) -> bool:
     user_info = mock_user_db[username]
     return user_info["is_admin"]
-
 
 
 @application.route("/")
