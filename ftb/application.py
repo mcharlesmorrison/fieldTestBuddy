@@ -4,6 +4,8 @@ import argon2 as ag
 
 from flask import Flask, render_template, redirect, url_for, flash, session, request
 
+from typing import Dict, List, Tuple, Optional, Any
+
 from forms import LoginForm, CreateFieldTestForm
 
 
@@ -15,9 +17,18 @@ application = Flask(__name__)
 # do something like python -c 'import secrets; print(secrets.token_hex())'
 application.secret_key = "i am a secret key"
 
+User = Dict[str, Any]
 
-def is_user_admin(user: str) -> bool:
-    return bool(len(user) % 2)
+mock_field_test_db: Dict[str, List[Any]] = dict()
+mock_user_db: Dict[str, User] = dict()
+
+mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslabs"}
+
+
+def is_user_admin(username: str) -> bool:
+    user_info = mock_user_db[username]
+    return user_info["is_admin"]
+
 
 
 @application.route("/")
@@ -84,6 +95,10 @@ def logout():
 
 @application.route("/field_test/create", methods=["GET", "POST"])
 def create_field_test():
+    """
+    How do we prevent user from creating a field test with a name that already exists?
+    Divided by user org ofc
+    """
     if "username" not in session:
         flash("You must be logged in and an admin to create a field test", "danger")
         return redirect(url_for("login"))
@@ -118,6 +133,8 @@ def create_field_test():
         )
         flash("Field Test Created!", "success")
         # TODO add field test to db, etc
+        mock_field_test_db[form.field_test_type.data] = field_test_defn
+        print(mock_field_test_db)
         return redirect(url_for("home"))
 
     return render_template("field_tester_pages/create_field_test.html", form=form)
