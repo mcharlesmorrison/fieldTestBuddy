@@ -3,14 +3,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %} {% endblock %}</title>
+    <title>Cass Labs</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     {% block head %}{% endblock %}
 </head>
 <body>
+    <header>
+      <a href="/"><h1>Cass Labs</h1></a>
+    </header>
     {% block body %}{% endblock %}
-    <footer>
-        <p>Footer</p>
-    </footer>
 </body>
 </html>
