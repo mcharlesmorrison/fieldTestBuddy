@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 
-from argon2 import PasswordHasher
+import argon2 as ag
 
-from flask import Flask, render_template
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, redirect, url_for, flash
+
+from forms import LoginForm
 
 application = Flask(__name__)
 application.secret_key = "i am a secret key"
@@ -14,50 +15,33 @@ def home():
     return render_template("index.html")
 
 
-@application.route("/signup", methods=["GET", "POST"])
-def signup():
-    """
-    TODO
-        - impl db
-    """
-    if request.method == "POST":
-        username = request.form["username"]
-        email = request.form["email"]
-
-        ph = PasswordHasher()
-        hashed_password = ph.hash(request.form["password"])
-
-        # Here, you would usually store the user data in a database
-        # For simplicity, we'll use flash messages
-        flash(f"Account created for {username}!", "success")
-
-        return redirect(url_for("signup"))
-
-    return render_template("signup.html")
-
-
 @application.route("/login", methods=["GET", "POST"])
 def login():
-    """
-    TODO
-        - impl db
-    """
-    if request.method == "POST":
-        email = request.form["email"]
-        password = request.form["password"]
+    form = LoginForm()
+    if form.validate_on_submit():
+        # TODO Update this lol
+        ph = ag.PasswordHasher()
+        # get hash from db for form.username.data
+        username = form.username.data
+        user_hash = "test"  # ph.hash(form.password.data)
 
-        ph = PasswordHasher()
-        hash = "1234"  # get hash from db
-        ph.verify(hash, password)
-
-        # Here, you would usually check the user's password against
-        # the hashed password in your database
-        # For simplicity, we'll use flash messages
-        flash(f"Logged in as {username}!", "success")
-
-        return redirect(url_for("login"))
-
-    return render_template("login.html")
+        ph.verify(user_hash, form.password.data)
+        try:
+            ph.verify(user_hash, form.password.data)
+            pass
+        except (
+            ag.exceptions.VerifyMismatchError,
+            ag.exceptions.VerificationError,
+        ):
+            flash("Login Unsuccessful. Please check username and password", "danger")
+            return redirect(url_for("home"))
+        except ag.exceptions.InvalidHash:
+            flash("something has gone wrong; please try again!", "danger")
+            return redirect(url_for("home"))
+        else:
+            flash(f"Logged in as {username}!", "success")
+            return redirect(url_for("home"))
+    return render_template("login.html", form=form)
 
 
 if __name__ == "__main__":
