@@ -5,6 +5,7 @@ import cassutils.dbUtils.userDB as userDB
 
 # Testing upload/database syncing/download/calibrate for field testing
 
+<<<<<<< Updated upstream
 projectName = "Random Test"
 fieldTestName = "Hello World"
 runName1 = "run 1"
@@ -23,6 +24,15 @@ trailName4 = "Wizard Sleeve"
 trailName5 = "Jungle Drop"
 trailName6 = "Jungle Drop"
 trailName7 = "Chup"
+=======
+projectName = "My Nigerian"
+fieldTestName = "Hello World 1"
+runName1 = "run 1"; runName2 = "run 2"; runName3 = "run 3"
+runName4 = "run 4"; runName5 = "run 5"; runName6 = "run 6"; runName7 = "run 7"
+location = "Santa Cruz"; trailNetwork = "Campus"
+trailName1 = "Dustys"; trailName2 = "Silver Surfer"; trailName3 = "Grandpa"
+trailName4 = "Wizard Sleeve"; trailName5 = "Jungle Drop";  trailName6 = "Jungle Drop";  trailName7 = "Chup"
+>>>>>>> Stashed changes
 bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
 bikeSetup = "NA"
 riderName = "Matt Morrison"
@@ -95,9 +105,14 @@ userType = "ftb_engineer_admin"
 # userType = "cassloggeradmin"
 
 # filepath = "/Users/mattmorrison/Desktop/ftb/foxExports"
-# ftbDB.ftbDbUploadBulk(filepath,postData,myUser["userType"])
+# ftbDB.ftbDbUploadBulk(filepath,postData,userType)
 
-fieldTestName = "Hello World"
-[tmpdir, fieldTestMetadata] = ftbDB.getftbFieldTest(fieldTestName, userType)
-print("my nigerian")
-# print(dbUtils.deleteMany("fieldTestName","Hello World", "fieldTestDB", "fieldTestMD",userType))
+# fieldTestName = "Hello World 2"
+# [tmpdir, fieldTestMetadata] = ftbDB.getftbFieldTest(fieldTestName, userType)
+# print("my nigerian")
+# print(dbUtils.deleteMany("fieldTestName","Hello World 2", "fieldTestDB", "fieldTestMD",userType))
+
+# generic   query test
+bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
+[tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
+print(tmpdir)
