@@ -2,11 +2,12 @@
 
 from flask import Flask, render_template
 
-app = Flask(__name__)
+application = Flask(__name__)
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+@application.route('/')
+@application.route('/<rest>')
+def home(rest=""):
+    return render_template('index.html', rest=rest)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    application.run(debug=False)
