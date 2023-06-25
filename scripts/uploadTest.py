@@ -1,6 +1,7 @@
 # import cassutils.clUtils.cassCommands as cassCommands
 import cassutils.dbUtils.ftbDB as ftbDB
 import cassutils.dbUtils.dbUtils as dbUtils
+import cassutils.dbUtils.userDB as userDB
 # Testing upload/database syncing/download/calibrate for field testing
 
 projectName = "Random Test"
@@ -36,12 +37,14 @@ metadata3 = dict(projectName=projectName, fieldTestName = fieldTestName,
 postData = [metadata1, metadata2, metadata3] 
 userType = "ftb_engineer_admin"
 # userType = "ftb_field_tester"
-
+# myUser = userDB.getUser("mattMorrison", "ftb_engineer_admin")
+# print(myUser["userType"])
 # userType = "cassloggeradmin"
 
 # filepath = "/Users/mattmorrison/Desktop/ftb/foxExports"
-# ftbDB.ftbDbUploadBulk(filepath,postData,userType)
+# ftbDB.ftbDbUploadBulk(filepath,postData,myUser["userType"])
 
 fieldTestName = "Hello World"
 [tmpdir, fieldTestMetadata] = ftbDB.getftbFieldTest(fieldTestName, userType)
+print("my nigerian")
 # print(dbUtils.deleteMany("fieldTestName","Hello World", "fieldTestDB", "fieldTestMD",userType))
