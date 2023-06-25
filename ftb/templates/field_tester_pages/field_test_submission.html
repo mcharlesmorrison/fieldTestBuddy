@@ -4,7 +4,7 @@
     <h1>Field Test Submission</h1>
     <form action="{{ url_for('field_test_submission') }}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="submit" value="Submit">
+        <div>{{ form.field_test_name.label }} {{ form.field_test_name }}</div>
+        <div>{{ form.submit() }}</div>
     </form>
 {% endblock %}
