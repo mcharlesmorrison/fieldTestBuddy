@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired
-from wtforms import StringField, PasswordField, SubmitField, SelectField, widgets
+from wtforms import Form, StringField, PasswordField, SubmitField, SelectField
 
 
 class LoginForm(FlaskForm):
@@ -8,6 +8,10 @@ class LoginForm(FlaskForm):
     password = PasswordField("password", validators=[DataRequired()])
     submit = SubmitField("login")
 
+
+"""
+https://www.sqlalchemy.org/
+"""
 
 """ Metadata Forms
 
@@ -25,7 +29,7 @@ Three classes of fields:
 """
 
 
-class MandatoryFieldTestForm(FlaskForm):
+class MandatoryFieldTestForm(Form):
     """Base Form for Field Test
 
     The fields below act as the base for all field test forms. When we get
@@ -35,6 +39,8 @@ class MandatoryFieldTestForm(FlaskForm):
     Some (most?) fields we don't render, though, since it's not an option for the
     user (such as `organization`). Not sure if defining a field over another
     type of variable is the way to go?
+
+    CSRF is disabled for this subform because it is never used by itself.
 
     how to create dynamic forms
     https://wtforms.readthedocs.io/en/2.3.x/specific_problems/#dynamic-form-composition

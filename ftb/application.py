@@ -2,9 +2,9 @@
 
 import argon2 as ag
 
-from flask import Flask, render_template, redirect, url_for, flash, session, abort
+from flask import Flask, render_template, redirect, url_for, flash, session
 
-from forms import LoginForm, FieldTestForm
+from forms import LoginForm, CreateFieldTestForm
 
 
 application = Flask(__name__)
@@ -16,6 +16,10 @@ application = Flask(__name__)
 application.secret_key = "i am a secret key"
 
 
+def is_user_admin(user: str) -> bool:
+    return bool(len(user) % 2)
+
+
 @application.route("/")
 def home():
     return render_template("index.html")
@@ -23,6 +27,10 @@ def home():
 
 @application.route("/login", methods=["GET", "POST"])
 def login():
+    if "username" in session:
+        flash("You are already logged in", "warning")
+        return redirect(url_for("home"))
+
     form = LoginForm()
     # form.validate_on_submit() checks if it's a POST request
     # and if the form is valid
@@ -31,9 +39,8 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
-        user_hash = "test"  # ph.hash(form.password.data)
+        user_hash = ph.hash(form.password.data)
 
-        ph.verify(user_hash, form.password.data)
         try:
             ph.verify(user_hash, form.password.data)
         except (
@@ -46,8 +53,8 @@ def login():
             flash("something has gone wrong; please try again!", "danger")
             return redirect(url_for("home"))
 
-        if ph.check_needs_rehash(hash):
-            new_hash = ph.hash(password)
+        if ph.check_needs_rehash(user_hash):
+            ph.hash(password)
             # do somethign like `db.set_password_hash_for_user(user, new_hash)`
 
         # set user session (keeps them logged in etc)
@@ -55,6 +62,10 @@ def login():
         session["username"] = username
 
         flash(f"Logged in as {username}!", "success")
+        is_admin = is_user_admin(username)
+        application.logger.info(
+            f"{username} logged in with {'admin' if is_admin else 'user'} privileges"
+        )
 
         return redirect(url_for("home"))
 
@@ -63,29 +74,38 @@ def login():
 
 @application.route("/logout")
 def logout():
-    session.pop("username", None)
-    flash("logged out", "success")
+    maybe_username = session.pop("username", None)
+    if maybe_username is not None:
+        flash("logged out", "success")
+    else:
+        flash("you were not logged in", "warning")
     return redirect(url_for("home"))
 
 
-@application.route("/field_test", methods=["GET", "POST"])
+@application.route("/field_test/create", methods=["GET", "POST"])
 def create_field_test():
     if "username" not in session:
         flash("You must be logged in and an admin to create a field test", "danger")
         return redirect(url_for("login"))
 
+    application.logger.info(f"{session['username']} is creating a field test")
+
     # need to check that username can access admin for org
-    is_admin, org = True, "Fox"  # db.get_info_for(username)
+    # this is probably not how we want to do this, but this
+    # gives an idea of what we have to do here
+    # is_admin, org = db.get_info_for(username)
+    is_admin = is_user_admin(session["username"])
     if not is_admin:
-        flash("You must be logged in and an admin to create a field test", "danger")
-        return redirect(url_for("login"))
+        flash("You must be logged in as an admin to create a field test", "danger")
+        return redirect(url_for("home"))
 
     form = CreateFieldTestForm()
     if form.validate_on_submit():
+        print(request)
         flash("Field Test Created!", "success")
         return redirect(url_for("home"))
 
-    return render_template("field_test.html", form=form)
+    return render_template("create_field_test.html", form=form)
 
 
 if __name__ == "__main__":

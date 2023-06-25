@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Create Field Test</h1>
+<form action="{{ url_for('create_field_test') }}" method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div>{{ form.field_test_name.label }} {{ form.field_test_name }}</div>
+  <div id="fields"></div>
+  <button id="addField">Add Metadata Field</button>
+  <div>{{ form.submit() }}</div>
+</form>
+
+<script>
+  const field_types = ["integer", "float", "string", "boolean", "file", "dropdown"];
+  const addField = () => {
+    const fieldsContainer = document.querySelector("#fields");
+    const fieldDiv = document.createElement("div");
+
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "remove";
+    removeButton.addEventListener("click", () => {
+      fieldsContainer.removeChild(fieldDiv);
+    });
+
+    const nameInput = document.createElement("input");
+    nameInput.setAttribute("type", "text");
+    nameInput.setAttribute("name", "field_name");
+    nameInput.setAttribute("placeholder", "Field Name");
+
+    const typeInput = document.createElement("select");
+    typeSelect.setAttribute("name", "field_type");
+    fieldTypes.foreach(fieldType => {
+      const option = document.createElement("option");
+      option.setAttribute("value", fieldType);
+      option.textContent = fieldType;
+      typeSelect.appendChild(option);
+    });
+
+    fieldDiv.appendChild(removeButton);
+    fieldDiv.appendChild(nameInput);
+    fieldDiv.appendChild(typeSelect);
+
+    fieldsContainer.appendChild(fieldDiv);
+  }
+
+  document.querySelector("#addField").addEventListener("click", addField);
+
+  addField();
+</script>
+
+{% endblock %}
