@@ -162,7 +162,6 @@ def select_field_test():
     field_test_form = SelectFieldTestForm()
 
     field_test_types = list(mock_field_test_defn_db.keys())
-
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
@@ -177,11 +176,8 @@ def select_field_test():
         return redirect(f"/field_test/upload_field_test/{field_test_type}")
 
     # log form errors
-    application.logger.error(f"form errors: {field_test_form.errors}")
-    field_test_types = list(mock_field_test_defn_db.keys())
-    application.logger.info(f"field tests: {field_test_types}")
     return render_template(
-        "field_tester_pages/field_test_selector.html", form=field_test_form
+        "field_tester_pages/select_field_test.html", form=field_test_form
     )
 
 
@@ -222,10 +218,19 @@ def upload_field_test(field_test_type):
     field_test_types = list(mock_field_test_defn_db.keys())
     application.logger.info(f"field tests: {field_test_types}")
     return render_template(
-        "field_tester_pages/field_test_upload.html",
+        "field_tester_pages/upload_field_test.html",
         form=upload_form,
         field_test_type=field_test_type,
     )
+
+
+@application.route("/field_test/query", methods=["GET", "POST"])
+def query():
+    if "username" not in session:
+        flash("You must be logged in to upload a field test", "danger")
+        return redirect(url_for("login"))
+
+    return render_template("field_tester_pages/query.html")
 
 
 if __name__ == "__main__":
