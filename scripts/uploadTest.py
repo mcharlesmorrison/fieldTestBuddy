@@ -78,11 +78,11 @@ metadata3 = dict(
 
 """ FTB UPLOADING TO DB """
 postData = [metadata1, metadata2, metadata3]
-userType = "ftb_engineer_admin"
+# userType = "ftb_engineer_admin"
 # userType = "ftb_field_tester"
 # myUser = userDB.getUser("mattMorrison", "ftb_engineer_admin")
 # print(myUser["userType"])
-# userType = "cassloggeradmin"
+# userType = "casslabsadmin"
 
 # filepath = "/Users/mattmorrison/Desktop/ftb/foxExports"
 # ftbDB.ftbDbUploadBulk(filepath,postData,userType)
@@ -93,6 +93,6 @@ userType = "ftb_engineer_admin"
 # print(dbUtils.deleteMany("fieldTestName","Hello World 2", "fieldTestDB", "fieldTestMD",userType))
 
 # generic   query test
-bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
-[tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
-print(tmpdir)
+# bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
+# [tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
+# print(tmpdir)
