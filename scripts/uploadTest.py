@@ -93,6 +93,6 @@ postData = [metadata1, metadata2, metadata3]
 # print(dbUtils.deleteMany("fieldTestName","Hello World 2", "fieldTestDB", "fieldTestMD",userType))
 
 # generic   query test
-# bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
-# [tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
-# print(tmpdir)
+bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
+[tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
+print(tmpdir)
