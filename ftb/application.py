@@ -20,7 +20,7 @@ from typing import Dict, List, Any
 
 from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
-from cassutils.dbUtils import userDB, dbUtils
+from cassutils.dbUtils import userDB
 
 
 """
@@ -40,15 +40,8 @@ User = Dict[str, Any]
 
 mock_field_test_defn_db: Dict[str, List[Any]] = dict()
 mock_field_test_db: Dict[str, List[Any]] = dict()
-mock_user_db: Dict[str, User] = dict()
 
 mock_field_test_defn_db["casslabs"] = [("test", "integer", None, True)]
-mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslabs"}
-
-
-def is_user_admin(username: str) -> bool:
-    user_info = mock_user_db[username]
-    return user_info["is_admin"]
 
 
 @application.route("/")
@@ -72,14 +65,13 @@ def login():
         username = form.username.data
         user_data = userDB.getUser(username, "ftb_engineer_admin")
 
-        if username is not None:
+        if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
 
         user_hash = user_data["password"]
 
-        user_hash = ph.hash(form.password.data)
-
+        print(user_hash, form.password.data)
         try:
             ph.verify(user_hash, form.password.data)
         except (
@@ -100,11 +92,12 @@ def login():
         # set user session (keeps them logged in etc)
         # handles cryptography so the user can't modify their session :O
         session["username"] = username
+        session["user_type"] = user_data["userType"]
 
         flash(f"Logged in as {username}!", "success")
-        is_admin = is_user_admin(username)
+        user_data["userType"] == "ftb_engineer_admin"
         application.logger.info(
-            f"{username} logged in with {'admin' if is_admin else 'user'} privileges"
+            f"{username} logged in with {user_data['userType']} privileges"
         )
 
         return redirect(url_for("home"))
@@ -115,6 +108,7 @@ def login():
 @application.route("/logout")
 def logout():
     maybe_username = session.pop("username", None)
+    session.pop("user_type", None)
     if maybe_username is not None:
         flash("logged out", "success")
     else:
@@ -137,8 +131,7 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    # is_admin, org = db.get_info_for(username)
-    is_admin = is_user_admin(session["username"])
+    is_admin = session["userType"] == "ftb_engineer_admin"
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))

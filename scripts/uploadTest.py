@@ -97,4 +97,4 @@ userType = "ftb_engineer_admin"
 # [tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
 # print(tmpdir)
 
-userDB.updateUserPW("mattMorrison", "iloveisrael69", userType)
+userDB.updateUserPW("mattMorrison", "chat_gpt_and_soy", userType)
