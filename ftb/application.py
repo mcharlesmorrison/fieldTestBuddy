@@ -20,7 +20,7 @@ from typing import Dict, List, Any
 
 from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
-from cassutils.dbUtils import dbUtils
+from cassutils.dbUtils import userDB, dbUtils
 
 
 """
@@ -70,11 +70,13 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
-        user_data = getUser(un=username, "ftb_engineer_admin")
+        user_data = userDB.getUser(username, "ftb_engineer_admin")
 
-        if username not in mock_user_db:
+        if username is not None:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
+
+        user_hash = user_data["password"]
 
         user_hash = ph.hash(form.password.data)
 
