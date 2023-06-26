@@ -38,10 +38,7 @@ application.secret_key = os.environ["ftb_flask_secret"]
 
 User = Dict[str, Any]
 
-mock_field_test_defn_db: Dict[str, List[Any]] = dict()
 mock_field_test_db: Dict[str, List[Any]] = dict()
-
-mock_field_test_defn_db["casslabs"] = [("test", "integer", None, True)]
 
 
 @application.route("/")
@@ -92,7 +89,7 @@ def login():
         # set user session (keeps them logged in etc)
         # handles cryptography so the user can't modify their session :O
         session["username"] = username
-        session["user_type"] = user_data["userType"]
+        session["userType"] = user_data["userType"]
 
         flash(f"Logged in as {username}!", "success")
         user_data["userType"] == "ftb_admin"
@@ -108,7 +105,7 @@ def login():
 @application.route("/logout")
 def logout():
     maybe_username = session.pop("username", None)
-    session.pop("user_type", None)
+    session.pop("userType", None)
     if maybe_username is not None:
         flash("logged out", "success")
     else:
@@ -131,7 +128,7 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    is_admin = session["user_type"] == "ftb_admin"
+    is_admin = session["userType"] == "ftb_admin"
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
@@ -163,7 +160,7 @@ def create_field_test():
             },
         }
 
-        frontEndDB.metadataDefUpload(field_test_defn, session["user_type"])
+        frontEndDB.metadataDefUpload(field_test_defn, session["userType"])
 
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
@@ -189,14 +186,14 @@ def select_field_test():
 
     field_test_form = SelectFieldTestForm()
 
-    field_test_types = frontEndDB.getFieldTestTypes(session["user_type"])
+    field_test_types = frontEndDB.getFieldTestTypes(session["userType"])
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
         # TODO do i have to escape here?
         field_test_type = field_test_form.field_test_type.data
-        # TODO check that field_test_type is actually in db, though it should always since this is fm dropdown
-        mock_field_test_defn_db[field_test_type]
+        # NOTE should we check that field_test_type is actually in db?
+        #      though it should always since this is fm dropdown
         # TODO add field test to db, etc
         flash("Field Test Selected!", "success")
         # TODO confirm field_test_type is valid unicode, or even better, choose
@@ -220,12 +217,15 @@ def upload_field_test(field_test_type):
     )
 
     try:
-        field_test_defn = mock_field_test_defn_db[field_test_type]
+        field_test_defn = frontEndDB.getMetadataDef(
+            field_test_type, session["userType"]
+        )
     except KeyError:
         flash("Invalid field test type", "danger")
         return redirect(url_for("select_field_test"))
 
-    upload_form = form_from_defn(field_test_type, field_test_defn)
+    print(field_test_defn)
+    upload_form = form_from_defn(field_test_type, field_test_defn["fields"])
 
     if request.method == "POST" and upload_form.validate():
         # TODO add field test to db, etc
@@ -234,15 +234,15 @@ def upload_field_test(field_test_type):
             form_data[field_name] = upload_form[field_name].data
 
         # TODO upload files to amazon s3
-
         mock_field_test_db[field_test_type + "random_string"] = form_data
 
         flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
 
-    application.logger.info(f"form errors: {upload_form.errors}")
-    field_test_types = list(mock_field_test_defn_db.keys())
+    field_test_types = frontEndDB.getFieldTestTypes(session["userType"])
+
     application.logger.info(f"field tests: {field_test_types}")
+
     return render_template(
         "field_test/upload_field_test.html",
         form=upload_form,

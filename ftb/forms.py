@@ -13,7 +13,7 @@ from wtforms import (
     FileField,
     validators,
 )
-from typing import Any, List, Tuple
+from typing import Dict
 
 
 field_name_to_type_map = {
@@ -26,15 +26,23 @@ field_name_to_type_map = {
 }
 
 
-def form_from_defn(
-    field_test_type: str, defn_list: List[Tuple[Any, Any, Any, Any]]
-) -> Form:
+def form_from_defn(field_test_type: str, defn_list: Dict[str, Dict[str, str]]) -> Form:
     """
     this will have to be refactored when we have a better idea of exactly the defn list format
+
+    'fields': {
+        'thrisisafield': {'type': 'string', 'default': '', 'required': 'true'},
+        'thisisanother': {'type': 'integer', 'default': '', 'required': 'false'},
+        'woowhichone': {'type': 'dropdown', 'default': '', 'required': 'true'}
+    }
     """
 
     fields = dict()
-    for field_label, field_type, default_value, is_required in defn_list:
+    for field_label, field_params in defn_list.items():
+        field_type = field_params["type"]
+        default_value = field_params["default"]
+        is_required = field_params["required"]
+
         try:
             field_class = field_name_to_type_map[field_type]
         except KeyError:
