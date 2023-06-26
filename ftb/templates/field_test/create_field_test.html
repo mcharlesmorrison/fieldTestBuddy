@@ -42,11 +42,21 @@
       typeSelect.add(option);
     });
 
+
     const defaultValueInput = document.createElement("input");
     defaultValueInput.setAttribute("name", "default_value[]");
     defaultValueInput.setAttribute("placeholder", "Default Value (comma-separated for dropdown)");
     defaultValueInput.style.display = 'none'; // Hide by default
 
+
+    typeSelect.addEventListener('change', () => {
+      // Show the default value input only if 'dropdown' is selected
+      if (typeSelect.value === 'dropdown') {
+        defaultValueInput.style.display = 'inline';
+      } else {
+        defaultValueInput.style.display = 'none';
+      }
+    });
     const requiredLabel = document.createElement("label");
     requiredLabel.textContent = "required";
 
