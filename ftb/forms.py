@@ -29,12 +29,6 @@ field_name_to_type_map = {
 def form_from_defn(field_test_type: str, defn_list: Dict[str, Dict[str, str]]) -> Form:
     """
     this will have to be refactored when we have a better idea of exactly the defn list format
-
-    'fields': {
-        'thrisisafield': {'type': 'string', 'default': '', 'required': 'true'},
-        'thisisanother': {'type': 'integer', 'default': '', 'required': 'false'},
-        'woowhichone': {'type': 'dropdown', 'default': '', 'required': 'true'}
-    }
     """
 
     fields = dict()
