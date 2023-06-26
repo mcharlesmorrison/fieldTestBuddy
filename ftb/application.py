@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import os
 import json
 import argon2 as ag
 
@@ -19,6 +20,8 @@ from typing import Dict, List, Any
 
 from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
+from cassutils.dbUtils import dbUtils
+
 
 """
 this file is SO messsy must be refactored
@@ -31,7 +34,7 @@ application = Flask(__name__)
 
 # TODO obviously change this!
 # do something like python -c 'import secrets; print(secrets.token_hex())'
-application.secret_key = "i am a secret key"
+application.secret_key = os.environ["ftb_flask_secret"]
 
 User = Dict[str, Any]
 
@@ -67,6 +70,8 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
+        user_data = getUser(un=username, "ftb_engineer_admin")
+
         if username not in mock_user_db:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
@@ -87,6 +92,7 @@ def login():
 
         if ph.check_needs_rehash(user_hash):
             ph.hash(form.password.data)
+            # TODO Update password w/ new hash sometimes
             # do somethign like `db.set_password_hash_for_user(user, new_hash)`
 
         # set user session (keeps them logged in etc)
