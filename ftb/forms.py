@@ -34,7 +34,7 @@ def form_from_defn(field_test_type: str, defn_list: Dict[str, Dict[str, str]]) -
     fields = dict()
     for field_label, field_params in defn_list.items():
         field_type = field_params["type"]
-        default_value = field_params["default"]
+        default = field_params["default"]
         is_required = field_params["required"]
 
         try:
@@ -44,20 +44,19 @@ def form_from_defn(field_test_type: str, defn_list: Dict[str, Dict[str, str]]) -
 
         validators_list = [validators.InputRequired()] if is_required else []
 
-        if field_label == "dropdown":
+        if field_type == "dropdown":
             # TODO escape
-            choices = [choice.strip() for choice in default_value.split(",")]
+            choices = [choice.strip() for choice in default.split(",")]
             field = field_class(
                 label=field_label, validators=validators_list, choices=choices
             )
         else:
             field = field_class(
-                label=field_label, validators=validators_list, default=default_value
+                label=field_label, validators=validators_list, default=default
             )
         fields[field_label] = field
 
     # Add submit and hidden fields
-    fields["file"] = FileField("data")
     fields["submit"] = SubmitField("Submit")
     fields["field test type"] = HiddenField(default=field_test_type)
 

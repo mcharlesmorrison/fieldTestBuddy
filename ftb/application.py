@@ -4,6 +4,8 @@ import os
 import json
 import argon2 as ag
 
+from pathlib import Path
+
 from flask import (
     Flask,
     make_response,
@@ -15,12 +17,13 @@ from flask import (
     request,
     jsonify,
 )
+from werkzeug.utils import secure_filename
 
 from typing import Dict, List, Any
 
 from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
-from cassutils.dbUtils import userDB, frontEndDB
+from cassutils.dbUtils import userDB, frontEndDB, ftbDB
 
 
 """
@@ -35,6 +38,7 @@ application = Flask(__name__)
 # TODO obviously change this!
 # do something like python -c 'import secrets; print(secrets.token_hex())'
 application.secret_key = os.environ["ftb_flask_secret"]
+application.config["UPLOAD_FOLDER"] = "/tmp/cass"
 
 User = Dict[str, Any]
 
@@ -68,7 +72,6 @@ def login():
 
         user_hash = user_data["password"]
 
-        print(user_hash, form.password.data)
         try:
             ph.verify(user_hash, form.password.data)
         except (
@@ -224,17 +227,30 @@ def upload_field_test(field_test_type):
         flash("Invalid field test type", "danger")
         return redirect(url_for("select_field_test"))
 
-    print(field_test_defn)
     upload_form = form_from_defn(field_test_type, field_test_defn["fields"])
 
     if request.method == "POST" and upload_form.validate():
         # TODO add field test to db, etc
         form_data = {}
-        for field_name, *rest in field_test_defn:
-            form_data[field_name] = upload_form[field_name].data
+        for field_name, *rest in field_test_defn["fields"].items():
+            try:
+                form_data[field_name] = upload_form[field_name].data
+            except KeyError as e:
+                raise KeyError(f"cant find form value for key {field_name}") from e
+
+        filenames = []
+        for file in request.files.getlist("folderupload"):
+            if file:
+                filename = secure_filename(file.filename)
+                file.save(str(Path(application.config["UPLOAD_FOLDER"]) / filename))
+                filenames.append(Path(application.config["UPLOAD_FOLDER"]) / filename)
+
+        metadata = [form_data for _ in range(len(filenames))]
 
         # TODO upload files to amazon s3
-        mock_field_test_db[field_test_type + "random_string"] = form_data
+        ftbDB.ftbDbUploadBulk(
+            application.config["UPLOAD_FOLDER"], metadata, session["userType"]
+        )
 
         flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
