@@ -63,7 +63,7 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
-        user_data = userDB.getUser(username, "ftb_engineer_admin")
+        user_data = userDB.getUser(username, "ftb_admin")
 
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
@@ -95,7 +95,7 @@ def login():
         session["user_type"] = user_data["userType"]
 
         flash(f"Logged in as {username}!", "success")
-        user_data["userType"] == "ftb_engineer_admin"
+        user_data["userType"] == "ftb_admin"
         application.logger.info(
             f"{username} logged in with {user_data['userType']} privileges"
         )
@@ -131,7 +131,7 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    is_admin = session["user_type"] == "ftb_engineer_admin"
+    is_admin = session["user_type"] == "ftb_admin"
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
