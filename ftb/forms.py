@@ -55,6 +55,7 @@ def form_from_defn(
         fields[field_label] = field
 
     # Add submit and hidden fields
+    fields["file"] = FileField("data")
     fields["submit"] = SubmitField("Submit")
     fields["field test type"] = HiddenField(default=field_test_type)
 

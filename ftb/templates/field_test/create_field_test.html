@@ -14,8 +14,8 @@
 <script>
   const fieldTypes = ["integer", "float", "string", "boolean", "file", "dropdown"];
   const updateHiddenInput = (checkboxElem) => {
-      let hiddenInput = checkboxElem.nextElementSibling;
-      hiddenInput.value = checkboxElem.checked ? 'true' : 'false';
+    let hiddenInput = checkboxElem.nextElementSibling;
+    hiddenInput.value = checkboxElem.checked ? 'true' : 'false';
   }
 
   const addField = () => {
