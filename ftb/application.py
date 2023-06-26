@@ -189,7 +189,7 @@ def select_field_test():
 
     field_test_form = SelectFieldTestForm()
 
-    field_test_types = list(mock_field_test_defn_db.keys())
+    field_test_types = frontEndDB.getFieldTestTypes(session["user_type"])
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
