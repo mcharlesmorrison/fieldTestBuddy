@@ -131,7 +131,7 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    is_admin = session["userType"] == "ftb_engineer_admin"
+    is_admin = session["user_type"] == "ftb_engineer_admin"
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
