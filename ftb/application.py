@@ -6,7 +6,7 @@ from flask import Flask, render_template, redirect, url_for, flash, session, req
 
 from typing import Dict, List, Any
 
-from forms import LoginForm, CreateFieldTestForm, FieldTestForm
+from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
 
 """
@@ -28,7 +28,7 @@ mock_field_test_defn_db: Dict[str, List[Any]] = dict()
 mock_field_test_db: Dict[str, List[Any]] = dict()
 mock_user_db: Dict[str, User] = dict()
 
-mock_field_test_defn_db["casslabs"] = ["test", "integer", None, True]
+mock_field_test_defn_db["casslabs"] = [("test", "integer", None, True)]
 mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslabs"}
 
 
@@ -56,6 +56,10 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
+        if username not in mock_user_db:
+            flash("Login Unsuccessful. Please check username and password", "danger")
+            return redirect(url_for("login"))
+
         user_hash = ph.hash(form.password.data)
 
         try:
@@ -125,10 +129,7 @@ def create_field_test():
         # TODO do i have to escape here?
         field_names = request.form.getlist("field_name[]")
         field_types = request.form.getlist("field_type[]")
-        default_values = [
-            None if val == "" else [v.strip() for v in val.split(",")]
-            for val in request.form.getlist("default_value[]")
-        ]
+        default_values = request.form.getlist("default_value[]")
         required = [
             is_required == "true" for is_required in request.form.getlist("required[]")
         ]
@@ -146,19 +147,19 @@ def create_field_test():
     return render_template("field_tester_pages/create_field_test.html", form=form)
 
 
-@application.route("/field_test/upload_field_test", methods=["GET", "POST"])
-def upload_field_test():
+@application.route("/field_test/select_field_test", methods=["GET", "POST"])
+def select_field_test():
     """
     this is "U1" in the wireframes
     """
 
     if "username" not in session:
-        flash("You must be logged in and an admin to upload a field test", "danger")
+        flash("You must be logged in to upload a field test", "danger")
         return redirect(url_for("login"))
 
-    application.logger.info(f"{session['username']} is uploading a field test")
+    application.logger.info(f"{session['username']} is selecting a field test")
 
-    field_test_form = FieldTestForm()
+    field_test_form = SelectFieldTestForm()
 
     field_test_types = list(mock_field_test_defn_db.keys())
 
@@ -171,15 +172,60 @@ def upload_field_test():
         mock_field_test_defn_db[field_test_type]
         # TODO add field test to db, etc
         flash("Field Test Selected!", "success")
+        # TODO confirm field_test_type is valid unicode, or even better, choose
+        # a different identifier for this (uuid?)
+        return redirect(f"/field_test/upload_field_test/{field_test_type}")
+
+    # log form errors
+    application.logger.error(f"form errors: {field_test_form.errors}")
+    field_test_types = list(mock_field_test_defn_db.keys())
+    application.logger.info(f"field tests: {field_test_types}")
+    return render_template(
+        "field_tester_pages/field_test_selector.html", form=field_test_form
+    )
+
+
+@application.route(
+    "/field_test/upload_field_test/<field_test_type>", methods=["GET", "POST"]
+)
+def upload_field_test(field_test_type):
+    if "username" not in session:
+        flash("You must be logged in to upload a field test", "danger")
+        return redirect(url_for("login"))
+
+    application.logger.info(
+        f"{session['username']} is uploading a field test of type {field_test_type}"
+    )
+
+    try:
+        field_test_defn = mock_field_test_defn_db[field_test_type]
+    except KeyError:
+        flash("Invalid field test type", "danger")
+        return redirect(url_for("select_field_test"))
+
+    upload_form = form_from_defn(field_test_type, field_test_defn)
+
+    if request.method == "POST" and upload_form.validate():
+        # TODO add field test to db, etc
+        form_data = {}
+        for field_name, *rest in field_test_defn:
+            form_data[field_name] = upload_form[field_name].data
+
+        # TODO upload files to amazon s3
+
+        mock_field_test_db[field_test_type + "random_string"] = form_data
+
+        flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
-    else:
-        # log form errors
-        application.logger.error(f"form errors: {field_test_form.errors}")
-        field_test_types = list(mock_field_test_defn_db.keys())
-        application.logger.info(f"field tests: {field_test_types}")
-        return render_template(
-            "field_tester_pages/field_test_selector.html", form=field_test_form
-        )
+
+    application.logger.info(f"form errors: {upload_form.errors}")
+    field_test_types = list(mock_field_test_defn_db.keys())
+    application.logger.info(f"field tests: {field_test_types}")
+    return render_template(
+        "field_tester_pages/field_test_upload.html",
+        form=upload_form,
+        field_test_type=field_test_type,
+    )
 
 
 if __name__ == "__main__":

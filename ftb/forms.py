@@ -1,6 +1,66 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired
-from wtforms import Form, StringField, PasswordField, SubmitField, SelectField
+from wtforms import (
+    PasswordField,
+    SubmitField,
+    SelectField,
+    HiddenField,
+    Form,
+    StringField,
+    IntegerField,
+    FloatField,
+    BooleanField,
+    FileField,
+    validators,
+)
+from typing import Any, List, Tuple
+
+
+field_name_to_type_map = {
+    "integer": IntegerField,
+    "float": FloatField,
+    "string": StringField,
+    "boolean": BooleanField,
+    "file": FileField,
+    "dropdown": SelectField,
+}
+
+
+def form_from_defn(
+    field_test_type: str, defn_list: List[Tuple[Any, Any, Any, Any]]
+) -> Form:
+    """
+    this will have to be refactored when we have a better idea of exactly the defn list format
+    """
+
+    fields = dict()
+    for field_label, field_type, default_value, is_required in defn_list:
+        try:
+            field_class = field_name_to_type_map[field_type]
+        except KeyError:
+            raise KeyError(f"invalid field type {field_type}")
+
+        validators_list = [validators.InputRequired()] if is_required else []
+
+        if field_label == "dropdown":
+            # TODO escape
+            [choice.strip() for choice in default_value.split(",")]
+            field = field_class(
+                label=field_label, validators=validators_list, choices=default_value
+            )
+        else:
+            field = field_class(
+                label=field_label, validators=validators_list, default=default_value
+            )
+        fields[field_label] = field
+
+    # Add submit and hidden fields
+    fields["submit"] = SubmitField("Submit")
+    fields["field test type"] = HiddenField(default=field_test_type)
+
+    DynamicForm = type("DynamicForm", (FlaskForm,), fields)
+
+    return DynamicForm()
 
 
 class LoginForm(FlaskForm):
@@ -50,7 +110,7 @@ class MandatoryFieldTestForm(Form):
     submit = SubmitField("submit")
 
 
-class FieldTestForm(FlaskForm):
+class SelectFieldTestForm(FlaskForm):
     """Form for Field Test
 
     Defined by the Admin, contains compulsory and non-compulsary fields.
@@ -59,7 +119,7 @@ class FieldTestForm(FlaskForm):
     only mandatory field (for now) is the field test type.
     """
 
-    field_test_type = SelectField("field_test_type", choices=[])
+    field_test_type = SelectField("field test type", choices=[])
     submit = SubmitField("submit")
 
 
@@ -76,4 +136,9 @@ class CreateFieldTestForm(FlaskForm):
     """
 
     field_test_type = StringField("field test type", validators=[DataRequired()])
+    submit = SubmitField("submit")
+
+
+class UploadFieldTestForm(FlaskForm):
+    field_test_type = HiddenField("field test type", validators=[DataRequired()])
     submit = SubmitField("submit")
