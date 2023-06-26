@@ -44,9 +44,9 @@ def form_from_defn(
 
         if field_label == "dropdown":
             # TODO escape
-            [choice.strip() for choice in default_value.split(",")]
+            choices = [choice.strip() for choice in default_value.split(",")]
             field = field_class(
-                label=field_label, validators=validators_list, choices=default_value
+                label=field_label, validators=validators_list, choices=choices
             )
         else:
             field = field_class(
