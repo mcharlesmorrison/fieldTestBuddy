@@ -144,7 +144,7 @@ def create_field_test():
         print(mock_field_test_defn_db)
         return redirect(url_for("home"))
 
-    return render_template("field_tester_pages/create_field_test.html", form=form)
+    return render_template("field_test/create_field_test.html", form=form)
 
 
 @application.route("/field_test/select_field_test", methods=["GET", "POST"])
@@ -177,7 +177,7 @@ def select_field_test():
 
     # log form errors
     return render_template(
-        "field_tester_pages/select_field_test.html", form=field_test_form
+        "field_test/select_field_test.html", form=field_test_form
     )
 
 
@@ -218,7 +218,7 @@ def upload_field_test(field_test_type):
     field_test_types = list(mock_field_test_defn_db.keys())
     application.logger.info(f"field tests: {field_test_types}")
     return render_template(
-        "field_tester_pages/upload_field_test.html",
+        "field_test/upload_field_test.html",
         form=upload_form,
         field_test_type=field_test_type,
     )
@@ -230,7 +230,7 @@ def query():
         flash("You must be logged in to upload a field test", "danger")
         return redirect(url_for("login"))
 
-    return render_template("field_tester_pages/query.html")
+    return render_template("field_test/query.html")
 
 
 if __name__ == "__main__":
