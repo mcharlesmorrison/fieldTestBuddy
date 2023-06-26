@@ -20,7 +20,7 @@ from typing import Dict, List, Any
 
 from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
-from cassutils.dbUtils import userDB
+from cassutils.dbUtils import userDB, frontEndDB
 
 
 """
@@ -137,6 +137,11 @@ def create_field_test():
         return redirect(url_for("home"))
 
     form = CreateFieldTestForm()
+
+    # FIXME hack
+    if form.errors:
+        flash(form.errors, "danger")
+
     if form.validate_on_submit():
         # TODO do i have to escape here?
         field_names = request.form.getlist("field_name[]")
@@ -144,8 +149,6 @@ def create_field_test():
         default_values = request.form.getlist("default_value[]")
         required = request.form.getlist("required[]")
 
-        print(field_names, field_types, default_values, required)
-        # these fields here are the ones that the admin sets for the field test
         field_test_defn = {
             "fieldTestType": form.field_test_type.data,
             "fields": {
@@ -159,19 +162,15 @@ def create_field_test():
                 )
             },
         }
+
+        frontEndDB.metadataDefUpload(field_test_defn, session["user_type"])
+
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
         )
         flash("Field Test Created!", "success")
-        # FIXME hack
-        if form.errors:
-            flash(form.errors, "danger")
-        # TODO add field test to db, etc
-        return redirect(url_for("home"))
 
-    # FIXME hack
-    if form.errors:
-        flash(form.errors, "danger")
+        return redirect(url_for("home"))
 
     return render_template("field_test/create_field_test.html", form=form)
 
