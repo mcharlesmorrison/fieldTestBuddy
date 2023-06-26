@@ -142,19 +142,36 @@ def create_field_test():
         field_names = request.form.getlist("field_name[]")
         field_types = request.form.getlist("field_type[]")
         default_values = request.form.getlist("default_value[]")
-        required = [
-            is_required == "true" for is_required in request.form.getlist("required[]")
-        ]
+        required = request.form.getlist("required[]")
+
+        print(field_names, field_types, default_values, required)
         # these fields here are the ones that the admin sets for the field test
-        field_test_defn = list(zip(field_names, field_types, default_values, required))
+        field_test_defn = {
+            "fieldTestType": form.field_test_type.data,
+            "fields": {
+                field_name: {
+                    "type": field_type,
+                    "default": default_value,
+                    "required": is_required,
+                }
+                for field_name, field_type, default_value, is_required in zip(
+                    field_names, field_types, default_values, required
+                )
+            },
+        }
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
         )
         flash("Field Test Created!", "success")
+        # FIXME hack
+        if form.errors:
+            flash(form.errors, "danger")
         # TODO add field test to db, etc
-        mock_field_test_defn_db[form.field_test_type.data] = field_test_defn
-        print(mock_field_test_defn_db)
         return redirect(url_for("home"))
+
+    # FIXME hack
+    if form.errors:
+        flash(form.errors, "danger")
 
     return render_template("field_test/create_field_test.html", form=form)
 

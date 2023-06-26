@@ -13,6 +13,11 @@
 
 <script>
   const fieldTypes = ["integer", "float", "string", "boolean", "file", "dropdown"];
+  const updateHiddenInput = (checkboxElem) => {
+      let hiddenInput = checkboxElem.nextElementSibling;
+      hiddenInput.value = checkboxElem.checked ? 'true' : 'false';
+  }
+
   const addField = () => {
     const fieldsContainer = document.querySelector("#fields");
     const fieldDiv = document.createElement("div");
@@ -42,21 +47,20 @@
     defaultValueInput.setAttribute("placeholder", "Default Value (comma-separated for dropdown)");
     defaultValueInput.style.display = 'none'; // Hide by default
 
-    typeSelect.addEventListener('change', () => {
-      // Show the default value input only if 'dropdown' is selected
-      if (typeSelect.value === 'dropdown') {
-        defaultValueInput.style.display = 'inline';
-      } else {
-        defaultValueInput.style.display = 'none';
-      }
-    });
-
     const requiredLabel = document.createElement("label");
     requiredLabel.textContent = "required";
+
     const requiredInput = document.createElement("input");
+    requiredInput.setAttribute("name", "checkbox[]");
     requiredInput.setAttribute("type", "checkbox");
-    requiredInput.setAttribute("name", "required[]");
-    requiredInput.setAttribute("value", "true");
+    requiredInput.addEventListener("change", () => {
+      updateHiddenInput(requiredInput);
+    });
+
+    const requiredHiddenInput = document.createElement("input");
+    requiredHiddenInput.setAttribute("type", "hidden");
+    requiredHiddenInput.setAttribute("name", "required[]");
+    requiredHiddenInput.setAttribute("value", "false");
 
     fieldDiv.appendChild(removeButton);
     fieldDiv.appendChild(nameInput);
@@ -64,6 +68,7 @@
     fieldDiv.appendChild(defaultValueInput);
     fieldDiv.appendChild(requiredLabel);
     fieldDiv.appendChild(requiredInput);
+    fieldDiv.appendChild(requiredHiddenInput);
 
     fieldsContainer.appendChild(fieldDiv);
   }
