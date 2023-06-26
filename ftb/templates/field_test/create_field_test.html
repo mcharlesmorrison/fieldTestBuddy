@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<h1>Create Field Test</h1>
+<form action="{{ url_for('create_field_test') }}" method="post" enctype="multipart/form-data">
+  {{ form.hidden_tag() }}
+  <div>{{ form.field_test_type.label }} {{ form.field_test_type }}</div>
+  <div id="fields"></div>
+  <button type="button" id="addField">Add Metadata Field</button>
+  <div>{{ form.submit() }}</div>
+</form>
+
+<script>
+  const fieldTypes = ["integer", "float", "string", "boolean", "file", "dropdown"];
+  const addField = () => {
+    const fieldsContainer = document.querySelector("#fields");
+    const fieldDiv = document.createElement("div");
+
+    const removeButton = document.createElement("button");
+    removeButton.textContent = "remove";
+    removeButton.addEventListener("click", () => {
+      fieldsContainer.removeChild(fieldDiv);
+    });
+
+    const nameInput = document.createElement("input");
+    nameInput.setAttribute("type", "text");
+    nameInput.setAttribute("name", "field_name[]");
+    nameInput.setAttribute("placeholder", "Field Name");
+
+    const typeSelect = document.createElement("select");
+    typeSelect.setAttribute("name", "field_type[]");
+    fieldTypes.forEach(fieldType => {
+      const option = document.createElement("option");
+      option.setAttribute("value", fieldType);
+      option.textContent = fieldType;
+      typeSelect.add(option);
+    });
+
+    const defaultValueInput = document.createElement("input");
+    defaultValueInput.setAttribute("name", "default_value[]");
+    defaultValueInput.setAttribute("placeholder", "Default Value (comma-separated for dropdown)");
+    defaultValueInput.style.display = 'none'; // Hide by default
+
+    typeSelect.addEventListener('change', () => {
+      // Show the default value input only if 'dropdown' is selected
+      if (typeSelect.value === 'dropdown') {
+        defaultValueInput.style.display = 'inline';
+      } else {
+        defaultValueInput.style.display = 'none';
+      }
+    });
+
+    const requiredLabel = document.createElement("label");
+    requiredLabel.textContent = "required";
+    const requiredInput = document.createElement("input");
+    requiredInput.setAttribute("type", "checkbox");
+    requiredInput.setAttribute("name", "required[]");
+    requiredInput.setAttribute("value", "true");
+
+    fieldDiv.appendChild(removeButton);
+    fieldDiv.appendChild(nameInput);
+    fieldDiv.appendChild(typeSelect);
+    fieldDiv.appendChild(defaultValueInput);
+    fieldDiv.appendChild(requiredLabel);
+    fieldDiv.appendChild(requiredInput);
+
+    fieldsContainer.appendChild(fieldDiv);
+  }
+
+  document.querySelector("#addField").addEventListener("click", addField);
+</script>
+
+{% endblock %}

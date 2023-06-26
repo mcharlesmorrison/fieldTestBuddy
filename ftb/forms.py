@@ -1,6 +1,66 @@
 from flask_wtf import FlaskForm
 from wtforms.validators import DataRequired
-from wtforms import StringField, PasswordField, SubmitField, SelectField, widgets
+from wtforms import (
+    PasswordField,
+    SubmitField,
+    SelectField,
+    HiddenField,
+    Form,
+    StringField,
+    IntegerField,
+    FloatField,
+    BooleanField,
+    FileField,
+    validators,
+)
+from typing import Any, List, Tuple
+
+
+field_name_to_type_map = {
+    "integer": IntegerField,
+    "float": FloatField,
+    "string": StringField,
+    "boolean": BooleanField,
+    "file": FileField,
+    "dropdown": SelectField,
+}
+
+
+def form_from_defn(
+    field_test_type: str, defn_list: List[Tuple[Any, Any, Any, Any]]
+) -> Form:
+    """
+    this will have to be refactored when we have a better idea of exactly the defn list format
+    """
+
+    fields = dict()
+    for field_label, field_type, default_value, is_required in defn_list:
+        try:
+            field_class = field_name_to_type_map[field_type]
+        except KeyError:
+            raise KeyError(f"invalid field type {field_type}")
+
+        validators_list = [validators.InputRequired()] if is_required else []
+
+        if field_label == "dropdown":
+            # TODO escape
+            [choice.strip() for choice in default_value.split(",")]
+            field = field_class(
+                label=field_label, validators=validators_list, choices=default_value
+            )
+        else:
+            field = field_class(
+                label=field_label, validators=validators_list, default=default_value
+            )
+        fields[field_label] = field
+
+    # Add submit and hidden fields
+    fields["submit"] = SubmitField("Submit")
+    fields["field test type"] = HiddenField(default=field_test_type)
+
+    DynamicForm = type("DynamicForm", (FlaskForm,), fields)
+
+    return DynamicForm()
 
 
 class LoginForm(FlaskForm):
@@ -8,6 +68,10 @@ class LoginForm(FlaskForm):
     password = PasswordField("password", validators=[DataRequired()])
     submit = SubmitField("login")
 
+
+"""
+https://www.sqlalchemy.org/
+"""
 
 """ Metadata Forms
 
@@ -25,7 +89,7 @@ Three classes of fields:
 """
 
 
-class MandatoryFieldTestForm(FlaskForm):
+class MandatoryFieldTestForm(Form):
     """Base Form for Field Test
 
     The fields below act as the base for all field test forms. When we get
@@ -36,6 +100,8 @@ class MandatoryFieldTestForm(FlaskForm):
     user (such as `organization`). Not sure if defining a field over another
     type of variable is the way to go?
 
+    CSRF is disabled for this subform because it is never used by itself.
+
     how to create dynamic forms
     https://wtforms.readthedocs.io/en/2.3.x/specific_problems/#dynamic-form-composition
     """
@@ -44,7 +110,7 @@ class MandatoryFieldTestForm(FlaskForm):
     submit = SubmitField("submit")
 
 
-class FieldTestForm(FlaskForm):
+class SelectFieldTestForm(FlaskForm):
     """Form for Field Test
 
     Defined by the Admin, contains compulsory and non-compulsary fields.
@@ -53,8 +119,8 @@ class FieldTestForm(FlaskForm):
     only mandatory field (for now) is the field test type.
     """
 
-    # field defined from the field test type
-    field_test_type = SelectField("field_test_type", choices=[])
+    field_test_type = SelectField("field test type", choices=[])
+    submit = SubmitField("submit")
 
 
 class CreateFieldTestForm(FlaskForm):
@@ -69,4 +135,10 @@ class CreateFieldTestForm(FlaskForm):
     https://www.rmedgar.com/blog/dynamic-fields-flask-wtf/
     """
 
-    field_test_type = StringField("field_test_type", validators=[DataRequired()])
+    field_test_type = StringField("field test type", validators=[DataRequired()])
+    submit = SubmitField("submit")
+
+
+class UploadFieldTestForm(FlaskForm):
+    field_test_type = HiddenField("field test type", validators=[DataRequired()])
+    submit = SubmitField("submit")
