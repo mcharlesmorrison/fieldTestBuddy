@@ -1,8 +1,19 @@
 #! /usr/bin/env python3
 
+import json
 import argon2 as ag
 
-from flask import Flask, render_template, redirect, url_for, flash, session, request
+from flask import (
+    Flask,
+    make_response,
+    render_template,
+    redirect,
+    url_for,
+    flash,
+    session,
+    request,
+    jsonify,
+)
 
 from typing import Dict, List, Any
 
@@ -176,9 +187,7 @@ def select_field_test():
         return redirect(f"/field_test/upload_field_test/{field_test_type}")
 
     # log form errors
-    return render_template(
-        "field_test/select_field_test.html", form=field_test_form
-    )
+    return render_template("field_test/select_field_test.html", form=field_test_form)
 
 
 @application.route(
@@ -227,10 +236,39 @@ def upload_field_test(field_test_type):
 @application.route("/field_test/query", methods=["GET", "POST"])
 def query():
     if "username" not in session:
-        flash("You must be logged in to upload a field test", "danger")
+        flash("You must be logged in to search for field tests", "danger")
         return redirect(url_for("login"))
 
-    return render_template("field_test/query.html")
+    return render_template("field_test/query_field_test.html")
+
+
+@application.route("/search")
+def search():
+    request.args.get("query")
+    # TODO HOW do you filter by query
+    #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
+    return jsonify([{"field_test_name": k, **v} for k, v in mock_field_test_db.items()])
+
+
+@application.route("/download")
+def download():
+    request.args.get("query")
+    # TODO HOW do you filter by query
+    #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
+    results = mock_field_test_db
+    results_json = json.dumps(results)
+
+    response = make_response(results_json)
+    response.headers["Content-Disposition"] = "attachment; filename=results.json"
+    response.headers["Content-Type"] = "application/json"
+
+    # # Sending the zip file for download
+    # return send_file(zip_filename,
+    #              mimetype='application/zip',
+    #              as_attachment=True,
+    #              download_name=zip_filename)
+
+    return response
 
 
 if __name__ == "__main__":
