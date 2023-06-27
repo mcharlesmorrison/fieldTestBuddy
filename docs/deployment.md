@@ -4,15 +4,10 @@ This will be a relatively loose guide of AWS Lambda deployment; it should be eno
 
 ## Big Idea
 
-- Use AWS Lambda for the server, since we expect low traffic. As traffic increases, if needed,
-we transfer to EC2. Pricing for labmda is [forgiving](https://aws.amazon.com/lambda/pricing/)
-- Use Flask for the backend. Lightweight and customizable, also there were many guides for
-running flask on Lambda.
-- Use (something) for frontend (React? Next.js?)? Not there yet but it's something to do soon.
-Want it to be as plug-and-play as possible.
-- Use [Zappa](https://github.com/zappa/Zappa) to deploy. Very easy, I am very impressed with
-this. I think that you need your [AWS CLI](https://aws.amazon.com/cli/) configured so Zappa can actually
-make the required calls.
+- Use AWS Lambda for the server, since we expect low traffic. As traffic increases, if needed, we transfer to EC2. Pricing for labmda is [forgiving](https://aws.amazon.com/lambda/pricing/)
+- Use Flask for the backend. Lightweight and customizable, also there were many guides for running flask on Lambda.
+- Use (something) for frontend (React? Next.js?)? Not there yet but it's something to do soon. Want it to be as plug-and-play as possible.
+- Use [Zappa](https://github.com/zappa/Zappa) to deploy. Very easy, I am very impressed with this. I think that you need your [AWS CLI](https://aws.amazon.com/cli/) configured so Zappa can actually interact with AWS. Also, Zappa docs are very good.
 
 ## During Dev
 
@@ -43,3 +38,4 @@ You'll name the deployment, too - I suggest `dev` for development, `prod` for pr
 ## TODO
 
 - How to link the deployment with a domain name?
+- How to link private keys? I skimmed this [this](https://stackoverflow.com/questions/64940495/zappa-where-to-put-aws-secret-access-keys),may be useful. A good Nitu question.
