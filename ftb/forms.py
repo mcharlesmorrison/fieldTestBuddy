@@ -13,7 +13,7 @@ from wtforms import (
     FileField,
     validators,
 )
-from typing import Any, List, Tuple
+from typing import Dict
 
 
 field_name_to_type_map = {
@@ -26,15 +26,17 @@ field_name_to_type_map = {
 }
 
 
-def form_from_defn(
-    field_test_type: str, defn_list: List[Tuple[Any, Any, Any, Any]]
-) -> Form:
+def form_from_defn(field_test_type: str, defn_list: Dict[str, Dict[str, str]]) -> Form:
     """
     this will have to be refactored when we have a better idea of exactly the defn list format
     """
 
     fields = dict()
-    for field_label, field_type, default_value, is_required in defn_list:
+    for field_label, field_params in defn_list.items():
+        field_type = field_params["type"]
+        default = field_params["default"]
+        is_required = field_params["required"]
+
         try:
             field_class = field_name_to_type_map[field_type]
         except KeyError:
@@ -42,15 +44,15 @@ def form_from_defn(
 
         validators_list = [validators.InputRequired()] if is_required else []
 
-        if field_label == "dropdown":
+        if field_type == "dropdown":
             # TODO escape
-            [choice.strip() for choice in default_value.split(",")]
+            choices = [choice.strip() for choice in default.split(",")]
             field = field_class(
-                label=field_label, validators=validators_list, choices=default_value
+                label=field_label, validators=validators_list, choices=choices
             )
         else:
             field = field_class(
-                label=field_label, validators=validators_list, default=default_value
+                label=field_label, validators=validators_list, default=default
             )
         fields[field_label] = field
 

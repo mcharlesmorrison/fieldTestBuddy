@@ -9,9 +9,10 @@
         <div>{{ field.label }} {{ field }}</div>
       {% endif %}
   {% endfor %}
+  <input type="file" id="filepicker" name="folderupload" webkitdirectory multiple />
   <div>{{ form.submit() }}</div>
   {% else %}
-  <p>invalid form</p>
+    <p>invalid form</p>
   {% endif %}
 </form>
 {% endblock %}

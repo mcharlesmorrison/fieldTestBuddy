@@ -1,7 +1,10 @@
 #! /usr/bin/env python3
 
+import os
 import json
 import argon2 as ag
+
+from pathlib import Path
 
 from flask import (
     Flask,
@@ -14,10 +17,13 @@ from flask import (
     request,
     jsonify,
 )
+from werkzeug.utils import secure_filename
 
 from typing import Dict, List, Any
 
-from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
+from ftb.forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
+
+import ftb.dbUtilities as dbUtils
 
 
 """
@@ -31,21 +37,12 @@ application = Flask(__name__)
 
 # TODO obviously change this!
 # do something like python -c 'import secrets; print(secrets.token_hex())'
-application.secret_key = "i am a secret key"
+application.secret_key = os.environ["ftb_flask_secret"]
+application.config["UPLOAD_FOLDER"] = "/tmp/cass"
 
 User = Dict[str, Any]
 
-mock_field_test_defn_db: Dict[str, List[Any]] = dict()
 mock_field_test_db: Dict[str, List[Any]] = dict()
-mock_user_db: Dict[str, User] = dict()
-
-mock_field_test_defn_db["casslabs"] = [("test", "integer", None, True)]
-mock_user_db["admin"] = {"username": "admin", "is_admin": True, "corp": "casslabs"}
-
-
-def is_user_admin(username: str) -> bool:
-    user_info = mock_user_db[username]
-    return user_info["is_admin"]
 
 
 @application.route("/")
@@ -67,11 +64,13 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
-        if username not in mock_user_db:
+        user_data = dbUtils.getUser(username, "ftb_admin")
+
+        if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
 
-        user_hash = ph.hash(form.password.data)
+        user_hash = user_data["password"]
 
         try:
             ph.verify(user_hash, form.password.data)
@@ -87,16 +86,18 @@ def login():
 
         if ph.check_needs_rehash(user_hash):
             ph.hash(form.password.data)
+            # TODO Update password w/ new hash sometimes
             # do somethign like `db.set_password_hash_for_user(user, new_hash)`
 
         # set user session (keeps them logged in etc)
         # handles cryptography so the user can't modify their session :O
         session["username"] = username
+        session["userType"] = user_data["userType"]
 
         flash(f"Logged in as {username}!", "success")
-        is_admin = is_user_admin(username)
+        user_data["userType"] == "ftb_admin"
         application.logger.info(
-            f"{username} logged in with {'admin' if is_admin else 'user'} privileges"
+            f"{username} logged in with {user_data['userType']} privileges"
         )
 
         return redirect(url_for("home"))
@@ -107,6 +108,7 @@ def login():
 @application.route("/logout")
 def logout():
     maybe_username = session.pop("username", None)
+    session.pop("userType", None)
     if maybe_username is not None:
         flash("logged out", "success")
     else:
@@ -129,30 +131,45 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    # is_admin, org = db.get_info_for(username)
-    is_admin = is_user_admin(session["username"])
+    is_admin = session["userType"] == "ftb_admin"
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
 
     form = CreateFieldTestForm()
+
+    # FIXME hack
+    if form.errors:
+        flash(form.errors, "danger")
+
     if form.validate_on_submit():
         # TODO do i have to escape here?
         field_names = request.form.getlist("field_name[]")
         field_types = request.form.getlist("field_type[]")
         default_values = request.form.getlist("default_value[]")
-        required = [
-            is_required == "true" for is_required in request.form.getlist("required[]")
-        ]
-        # these fields here are the ones that the admin sets for the field test
-        field_test_defn = list(zip(field_names, field_types, default_values, required))
+        required = request.form.getlist("required[]")
+
+        field_test_defn = {
+            "fieldTestType": form.field_test_type.data,
+            "fields": {
+                field_name: {
+                    "type": field_type,
+                    "default": default_value,
+                    "required": is_required,
+                }
+                for field_name, field_type, default_value, is_required in zip(
+                    field_names, field_types, default_values, required
+                )
+            },
+        }
+
+        dbUtils.metadataDefUpload(field_test_defn, session["userType"])
+
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
         )
         flash("Field Test Created!", "success")
-        # TODO add field test to db, etc
-        mock_field_test_defn_db[form.field_test_type.data] = field_test_defn
-        print(mock_field_test_defn_db)
+
         return redirect(url_for("home"))
 
     return render_template("field_test/create_field_test.html", form=form)
@@ -172,14 +189,14 @@ def select_field_test():
 
     field_test_form = SelectFieldTestForm()
 
-    field_test_types = list(mock_field_test_defn_db.keys())
+    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
         # TODO do i have to escape here?
         field_test_type = field_test_form.field_test_type.data
-        # TODO check that field_test_type is actually in db, though it should always since this is fm dropdown
-        mock_field_test_defn_db[field_test_type]
+        # NOTE should we check that field_test_type is actually in db?
+        #      though it should always since this is fm dropdown
         # TODO add field test to db, etc
         flash("Field Test Selected!", "success")
         # TODO confirm field_test_type is valid unicode, or even better, choose
@@ -203,29 +220,45 @@ def upload_field_test(field_test_type):
     )
 
     try:
-        field_test_defn = mock_field_test_defn_db[field_test_type]
+        field_test_defn = dbUtils.getMetadataDef(
+            field_test_type, session["userType"]
+        )
     except KeyError:
         flash("Invalid field test type", "danger")
         return redirect(url_for("select_field_test"))
 
-    upload_form = form_from_defn(field_test_type, field_test_defn)
+    upload_form = form_from_defn(field_test_type, field_test_defn["fields"])
 
     if request.method == "POST" and upload_form.validate():
         # TODO add field test to db, etc
         form_data = {}
-        for field_name, *rest in field_test_defn:
-            form_data[field_name] = upload_form[field_name].data
+        for field_name, *rest in field_test_defn["fields"].items():
+            try:
+                form_data[field_name] = upload_form[field_name].data
+            except KeyError as e:
+                raise KeyError(f"cant find form value for key {field_name}") from e
+
+        filenames = []
+        for file in request.files.getlist("folderupload"):
+            if file:
+                filename = secure_filename(file.filename)
+                file.save(str(Path(application.config["UPLOAD_FOLDER"]) / filename))
+                filenames.append(Path(application.config["UPLOAD_FOLDER"]) / filename)
+
+        metadata = [form_data for _ in range(len(filenames))]
 
         # TODO upload files to amazon s3
-
-        mock_field_test_db[field_test_type + "random_string"] = form_data
+        ftbDB.ftbDbUploadBulk(
+            application.config["UPLOAD_FOLDER"], metadata, session["userType"]
+        )
 
         flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
 
-    application.logger.info(f"form errors: {upload_form.errors}")
-    field_test_types = list(mock_field_test_defn_db.keys())
+    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
+
     application.logger.info(f"field tests: {field_test_types}")
+
     return render_template(
         "field_test/upload_field_test.html",
         form=upload_form,
