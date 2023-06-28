@@ -21,9 +21,9 @@ from werkzeug.utils import secure_filename
 
 from typing import Dict, List, Any
 
-from forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
+from ftb.forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
 
-from cassutils.dbUtils import userDB, frontEndDB, ftbDB
+import ftb.dbUtilities as dbUtils
 
 
 """
@@ -64,7 +64,7 @@ def login():
         ph = ag.PasswordHasher()
         # get hash from db for form.username.data
         username = form.username.data
-        user_data = userDB.getUser(username, "ftb_admin")
+        user_data = dbUtils.getUser(username, "ftb_admin")
 
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
@@ -163,7 +163,7 @@ def create_field_test():
             },
         }
 
-        frontEndDB.metadataDefUpload(field_test_defn, session["userType"])
+        dbUtils.metadataDefUpload(field_test_defn, session["userType"])
 
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
@@ -189,7 +189,7 @@ def select_field_test():
 
     field_test_form = SelectFieldTestForm()
 
-    field_test_types = frontEndDB.getFieldTestTypes(session["userType"])
+    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
@@ -220,7 +220,7 @@ def upload_field_test(field_test_type):
     )
 
     try:
-        field_test_defn = frontEndDB.getMetadataDef(
+        field_test_defn = dbUtils.getMetadataDef(
             field_test_type, session["userType"]
         )
     except KeyError:
@@ -255,7 +255,7 @@ def upload_field_test(field_test_type):
         flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
 
-    field_test_types = frontEndDB.getFieldTestTypes(session["userType"])
+    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
 
     application.logger.info(f"field tests: {field_test_types}")
 
