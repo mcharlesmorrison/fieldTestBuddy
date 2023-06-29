@@ -1,15 +1,17 @@
 # USER DB TESTING BITCHEZ!!!
 import dbUtilities as dbUtils
 
-un = "mattMorrison"
-pw = "iamstraight1"
-name = "Matt Morrison"
-email = "mcharlesmorrison@berkeley.edu"
+un = "bigFatTool"
+pw = "iamgay1"
+name = "Zack Watkijns"
+email = "zackwatkins604@gmail.com"
 org = "Cass Labs"
-userType = "ftb_engineer_admin"
+userType = "ftb_admin"
 
-# userDict = userDB.createUserDict(un, pw, name, org, userType, email)
-
+userDict = dbUtils.createUserDict(un, pw, name, org, userType, email)
+dbUtils.userDBUpload(userDict,"ftb_admin")
+# mattMorrison pw=password
+# axelJacobsen pw=iamgay1
 # new pw: password
-dbUtils.updateUserPW("mattMorrison","password","ftb_admin")
+# dbUtils.updateUserPW("mattMorrison","password","ftb_admin")
 

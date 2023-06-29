@@ -20,7 +20,8 @@ jmespath==1.0.1
 kappa==0.6.0
 MarkupSafe==2.1.3
 placebo==0.9.0
-cparser==2.21
+cparser==0.2.0
+pymongo[srv]==3.13.0
 python-dateutil==2.8.2
 python-slugify==8.0.1
 PyYAML==6.0
