@@ -19,9 +19,8 @@ Run `zappa init` and follow along. Be in the virtual environment when you `zappa
 
 Another thing to note: Zappa needs the file and variable name of the `Flask()` object, which is `application.application` (since our entry point is `application.py`, and the Flask app is defined as `application = Flask(__name__)`. It is good at finding it, and you will have to approve it's guess of `application.application` during `zappa init`.
 
-Integrating the backend `pythonToolbox` will be necessary to access the DB stuff. So there are two options:
-- Plop ftb code into `pythonToolbox` and deploy within there
-- Refactor the DB code out into `ftb` and import DB code into `pythonToolbox` from `ftb` as needed
+Integrating the backend `pythonToolbox` will be necessary to access the DB stuff. 
+- Update (6/30/23): Matt added the releventa `ftb` code into the codebase. Seems like everything works (needed to add a couple things to `requirements.txt`).
 
 I think that the second option would be cleaner: it'd be easier to deal with dependencies and `requirements.txt` and give us a good opportunity to refactor the DB code. But it's up to you!
 
