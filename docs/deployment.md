@@ -36,6 +36,7 @@ You'll name the deployment, too - I suggest `dev` for development, `prod` for pr
 
 ## TODO
 
+-Fix upload file errors
 - Field test query page functionality
     - Search
     - Select (how to do selection shite?)
