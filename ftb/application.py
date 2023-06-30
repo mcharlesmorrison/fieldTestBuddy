@@ -55,7 +55,6 @@ def login():
     if "username" in session:
         flash("You are already logged in", "warning")
         return redirect(url_for("home"))
-    print("Deez Nutz") # DEBUG
     form = LoginForm()
     # form.validate_on_submit() checks if it's a POST request
     # and if the form is valid
@@ -65,7 +64,6 @@ def login():
         # get hash from db for form.username.data
         username = form.username.data
         user_data = dbUtils.getUser(username, "ftb_admin")
-        print("user data: ", user_data) # DEBUG
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
