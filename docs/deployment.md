@@ -20,7 +20,7 @@ Run `zappa init` and follow along. Be in the virtual environment when you `zappa
 Another thing to note: Zappa needs the file and variable name of the `Flask()` object, which is `application.application` (since our entry point is `application.py`, and the Flask app is defined as `application = Flask(__name__)`. It is good at finding it, and you will have to approve it's guess of `application.application` during `zappa init`.
 
 Integrating the backend `pythonToolbox` will be necessary to access the DB stuff. 
-- Update (6/30/23): Matt added the releventa `ftb` code into the codebase. Seems like everything works (needed to add a couple things to `requirements.txt`).
+- Update (6/30/23): Matt added the relevent `ftb` code into the codebase.
 
 I think that the second option would be cleaner: it'd be easier to deal with dependencies and `requirements.txt` and give us a good opportunity to refactor the DB code. But it's up to you!
 
@@ -36,5 +36,10 @@ You'll name the deployment, too - I suggest `dev` for development, `prod` for pr
 
 ## TODO
 
+- Field test query page functionality
+    - Search
+    - Select (how to do selection shite?)
+    - Download
+- Front end development (js/css/html, react, something else?)
 - How to link the deployment with a domain name?
 - How to link private keys? I skimmed this [this](https://stackoverflow.com/questions/64940495/zappa-where-to-put-aws-secret-access-keys),may be useful. A good Nitu question.
