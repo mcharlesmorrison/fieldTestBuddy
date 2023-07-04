@@ -246,7 +246,7 @@ def upload_field_test(field_test_type):
         metadata = [form_data for _ in range(len(filenames))]
 
         # TODO upload files to amazon s3
-        ftbDB.ftbDbUploadBulk(
+        dbUtils.ftbDbUploadBulk(
             application.config["UPLOAD_FOLDER"], metadata, session["userType"]
         )
 
