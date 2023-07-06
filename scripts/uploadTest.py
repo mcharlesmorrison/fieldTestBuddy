@@ -1,18 +1,27 @@
 # import cassutils.clUtils.cassCommands as cassCommands
-import cassutils.dbUtils.ftbDB as ftbDB
 import cassutils.dbUtils.dbUtils as dbUtils
-import cassutils.dbUtils.userDB as userDB
 import cassutils.dbUtils.frontEndDB as frontEndDB
 
 # Testing upload/database syncing/download/calibrate for field testing
 
 projectName = "My Nigerian"
 fieldTestName = "Hello World 1"
-runName1 = "run 1"; runName2 = "run 2"; runName3 = "run 3"
-runName4 = "run 4"; runName5 = "run 5"; runName6 = "run 6"; runName7 = "run 7"
-location = "Santa Cruz"; trailNetwork = "Campus"
-trailName1 = "Dustys"; trailName2 = "Silver Surfer"; trailName3 = "Grandpa"
-trailName4 = "Wizard Sleeve"; trailName5 = "Jungle Drop";  trailName6 = "Jungle Drop";  trailName7 = "Chup"
+runName1 = "run 1"
+runName2 = "run 2"
+runName3 = "run 3"
+runName4 = "run 4"
+runName5 = "run 5"
+runName6 = "run 6"
+runName7 = "run 7"
+location = "Santa Cruz"
+trailNetwork = "Campus"
+trailName1 = "Dustys"
+trailName2 = "Silver Surfer"
+trailName3 = "Grandpa"
+trailName4 = "Wizard Sleeve"
+trailName5 = "Jungle Drop"
+trailName6 = "Jungle Drop"
+trailName7 = "Chup"
 
 bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
 bikeSetup = "NA"
@@ -101,6 +110,8 @@ userType = "ftb_admin"
 # userDB.updateUserPW("mattMorrison", "chat_gpt_and_soy", userType)
 
 metadataDef = dict(fieldTestType="agoodone", shit="shite!")
-frontEndDB.metadataDefUpload(metadataDef,"ftb_admin")
-print(frontEndDB.getMetadataDef("agoodone","ftb_admin"))
-dbUtils.deleteMany("fieldTestType","agoodone","frontEndDB","metadataDefinition","ftb_admin")
+frontEndDB.metadataDefUpload(metadataDef, "ftb_admin")
+print(frontEndDB.getMetadataDef("agoodone", "ftb_admin"))
+dbUtils.deleteMany(
+    "fieldTestType", "agoodone", "frontEndDB", "metadataDefinition", "ftb_admin"
+)
