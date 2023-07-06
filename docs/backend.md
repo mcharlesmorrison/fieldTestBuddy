@@ -2,7 +2,7 @@
 
 Relevant notes for backend functions. Note: there is a "backendTestin.py" file that can be used to test all these utility functions, and to clean up databases while we are uploading lots of shit that we'll want to delete.
 
-## New/Relevant functions
+## New/Relevant Functions
 
 - `dbUtilities.getUniqueFieldNames(userType)` returns a list of all unique field names in the field test metadata collection. This will be used for generating a list for the "search by" tab on the download page for engineers.
 
