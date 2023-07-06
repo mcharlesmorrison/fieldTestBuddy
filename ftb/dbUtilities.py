@@ -253,7 +253,22 @@ def getFieldTestTypes(userType):
     fieldTestTypes = collection.distinct("fieldTestType")
     return fieldTestTypes
 
+def getUniqueFieldNames(userType):
+    collection = accessMongoCollection(dbFE,colFE, userType)
+    pipeline = [
+    {"$project": {"fields": {"$objectToArray": "$$ROOT"}}},
+    {"$unwind": "$fields"},
+    {"$group": {"_id": None, "uniqueFields": {"$addToSet": "$fields.k"}}}
+    ]
 
+    # Execute the pipeline
+    result = collection.aggregate(pipeline)
+
+    # Extract the unique field names from the result
+    distinct_fields = result.next()["uniqueFields"]
+    
+    distinct_fields.remove("_id")
+    return distinct_fields
 """=========== USER DB =========================================================================="""
 
 
