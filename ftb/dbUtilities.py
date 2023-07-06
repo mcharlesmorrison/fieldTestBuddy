@@ -81,13 +81,13 @@ def mongoMakePost(metadata: dict, databaseName, collectionName, userType):
     else:
         collection.insert_one(metadata)
 
-def getDocument(queryBy: str, id: str, myDatabase: str, myCollection: str, userType):
+def getDocument(queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str):
     collection = accessMongoCollection(myDatabase, myCollection, userType)
     document = collection.find_one({queryBy:id})
     return document
 
 
-def deleteMany(queryBy: str, id: str, myDatabase: str, myCollection: str, userType):
+def deleteMany(queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str):
     if userType == "ftb_engineer" or userType == "ftb_admin":
         db = "fieldTestDB"
         col = "fieldTestMD"
@@ -230,6 +230,23 @@ def ftbQuery(queryBy: str, key: str, userType):
     
     return (str(tmpdir) + '.zip', queryMetadata)
 
+def getUniqueFieldNames(userType: str):
+    collection = accessMongoCollection(dbFT,colFT, userType)
+    pipeline = [
+    {"$project": {"fields": {"$objectToArray": "$$ROOT"}}},
+    {"$unwind": "$fields"},
+    {"$group": {"_id": None, "uniqueFields": {"$addToSet": "$fields.k"}}}
+    ]
+
+    # Execute the pipeline
+    result = collection.aggregate(pipeline)
+
+    # Extract the unique field names from the result
+    distinct_fields = result.next()["uniqueFields"]
+    
+    distinct_fields.remove("_id")
+    return distinct_fields
+
 
 """=========== FRONT END DB =========================================================================="""
 
@@ -253,22 +270,6 @@ def getFieldTestTypes(userType):
     fieldTestTypes = collection.distinct("fieldTestType")
     return fieldTestTypes
 
-def getUniqueFieldNames(userType):
-    collection = accessMongoCollection(dbFE,colFE, userType)
-    pipeline = [
-    {"$project": {"fields": {"$objectToArray": "$$ROOT"}}},
-    {"$unwind": "$fields"},
-    {"$group": {"_id": None, "uniqueFields": {"$addToSet": "$fields.k"}}}
-    ]
-
-    # Execute the pipeline
-    result = collection.aggregate(pipeline)
-
-    # Extract the unique field names from the result
-    distinct_fields = result.next()["uniqueFields"]
-    
-    distinct_fields.remove("_id")
-    return distinct_fields
 """=========== USER DB =========================================================================="""
 
 
