@@ -5,7 +5,13 @@ import dbUtilities as dbUtils
 
 
 # === get field names ===
-print(dbUtils.getUniqueFieldNames("ftb_admin"))
+# print(dbUtils.getUniqueFieldNames("ftb_admin"))
+
+# === querying === 
+#  THIS LOOOKS FOR EXACT MATCHED
+# print(dbUtils.ftbQuery("god_is_gay?\"", "yes?", "ftb_admin"))
+# THIS LOOKS FOR PARTIAL MATCHES
+print(dbUtils.ftbPartialMatchQuery("god_is_gay?\"", "yes", "ftb_admin"))
 
 # === delete field test data ===
 """example here:

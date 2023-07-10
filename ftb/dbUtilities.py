@@ -230,6 +230,53 @@ def ftbQuery(queryBy: str, key: str, userType):
     
     return (str(tmpdir) + '.zip', queryMetadata)
 
+def ftbPartialMatchQuery(queryBy: str, searchString: str, userType):
+    collection = accessMongoCollection(dbFT, colFT, userType)
+    query = {queryBy: {'$regex': f'.*{searchString}.*'}}
+    
+    queryMetadata = list(collection.find(query))
+
+    # now pull file from s3 bucket
+    s3 = createBoto3Client(userType)
+    ftb_bucket = s3.Bucket(name=bucketName)
+    curdir = Path.cwd()
+    
+    # create directory
+    tmpdir = Path(curdir, "tmp_{}".format(int(time.time())))
+    # tmpdir = Path(curdir, "tmp") #ATTN may need debug
+    tmpdir.mkdir(exist_ok=True)
+
+    # create field test subdirectories 
+    fieldTests = set([item['fieldTestName'] for item in queryMetadata])
+    for fieldTestName in fieldTests:
+        # create field test subdir
+        testDir = Path(tmpdir,fieldTestName)
+        testDir.mkdir(exist_ok=True)
+
+        # dump metadata to ft folder
+        ftLevelMetadata = [item for item in queryMetadata if item['fieldTestName'] == fieldTestName]
+        metadataFilename = fieldTestName + "_metadata.json"
+        jsonFilepath = Path(testDir, metadataFilename)
+        with open(jsonFilepath,"w") as outfile:
+            json.dump(ftLevelMetadata,outfile)    
+
+    for item in queryMetadata:
+        ftb_bucket.download_file(item['filename'],item['filename'])
+        # put file in appropriate field test subdirectory
+        Path(curdir,item['filename']).rename(Path(tmpdir,item['fieldTestName'],item['filename']))
+
+    # store metadata in local json file
+    jsonFilepath = Path(tmpdir,"metadata.json")
+    with open(jsonFilepath,"w") as outfile:
+        json.dump(queryMetadata,outfile)
+    
+    archiveName = tmpdir
+    shutil.make_archive(archiveName, 'zip', tmpdir)
+    shutil.rmtree(tmpdir)
+    
+    return (str(tmpdir) + '.zip', queryMetadata)
+
+
 def getUniqueFieldNames(userType: str):
     collection = accessMongoCollection(dbFT,colFT, userType)
     pipeline = [
