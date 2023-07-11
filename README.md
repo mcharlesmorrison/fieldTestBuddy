@@ -20,3 +20,10 @@ FLASK_APP=ftb/app.py flask run
 ## General code cleanliness
 
 I like [black](https://github.com/psf/black) for automatic code formatting (`pip3 install black` to install and `black ftb` will autoformat `ftb` for you). `ruff` is also very good for linting (`pip3 install ruff` and `ruff ftb --fix`), and `mypy` for type checking (`pip3 install mypy` and `mypy ftb`). This triplet finds SO many bugs, it's rediculous. Makes you realize how much you lose from dynamically typed languages.
+
+
+## Before deployment
+
+- deal w/ user forgetting pword, blahblahblah
+  - oauth probably OK for this
+- need to secure user sessions somehow
