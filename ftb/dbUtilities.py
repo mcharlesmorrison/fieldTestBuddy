@@ -3,6 +3,7 @@ import time
 import json
 import uuid
 import boto3
+import bcrypt
 import shutil
 import certifi
 
@@ -396,12 +397,13 @@ def userDBUpload(data: dict, userType):
     mongoMakePost(data, dbU, colU, userType)
 
 
-def getUser(un: str, userType):
+def getUser(un: str, userType: str):
     collection = accessMongoCollection("userDB", "users", userType)
-    user = collection.find_one({"username": un})
+    user = collection.find_one({"userName": un})
     return user
 
-def createUserDict(un, pw_hash, name, org, userType, email):
+def createUserDict(un, pw: str, name: str, org: str, userType: str, email: str):
+    pw_hash = bcrypt.hashpw(str.encode(pw), bcrypt.gensalt()).decode("utf-8")
     return dict(
         userName=un,
         password=pw_hash,
@@ -420,10 +422,11 @@ def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userTyp
 
 
 def updateUserPW(un, pw_hash, userType):
+    # need to encode pw_hash as string
     return updateUser(
         queryBy="username",
         key=un,
         updateField="password",
-        updateVal=pw_hash,
+        updateVal=str.encode(pw_hash),
         userType=userType,
     )

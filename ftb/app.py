@@ -31,10 +31,6 @@ from ftb.forms import (
 import ftb.dbUtilities as dbUtils
 
 
-"""
-this file is SO messsy must be refactored
-"""
-
 
 application = Flask(__name__)
 
@@ -64,7 +60,6 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
-
         user_data = dbUtils.getUser(username, "ftb_admin")
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
@@ -72,7 +67,7 @@ def login():
 
         user_hash = user_data["password"]
 
-        if not bcrypt.checkpw(form.password.data, user_hash):
+        if not bcrypt.checkpw(str.encode(form.password.data), str.encode(user_hash)):
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("home"))
 
