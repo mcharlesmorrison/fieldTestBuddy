@@ -21,7 +21,12 @@ from werkzeug.utils import secure_filename
 
 from typing import Dict, List, Any
 
-from ftb.forms import form_from_defn, LoginForm, CreateFieldTestForm, SelectFieldTestForm
+from ftb.forms import (
+    form_from_defn,
+    LoginForm,
+    CreateFieldTestForm,
+    SelectFieldTestForm,
+)
 
 import ftb.dbUtilities as dbUtils
 
@@ -218,9 +223,7 @@ def upload_field_test(field_test_type):
     )
 
     try:
-        field_test_defn = dbUtils.getMetadataDef(
-            field_test_type, session["userType"]
-        )
+        field_test_defn = dbUtils.getMetadataDef(field_test_type, session["userType"])
     except KeyError:
         flash("Invalid field test type", "danger")
         return redirect(url_for("select_field_test"))

@@ -1,4 +1,5 @@
 import dbUtilities as dbUtils
+
 # Existing passwords:
 # mattMorrison pw=password
 # axelJacobsen pw=iamgay1
@@ -7,11 +8,11 @@ import dbUtilities as dbUtils
 # === get field names ===
 # print(dbUtils.getUniqueFieldNames("ftb_admin"))
 
-# === querying === 
+# === querying ===
 #  THIS LOOOKS FOR EXACT MATCHED
 # print(dbUtils.ftbQuery("god_is_gay?\"", "yes?", "ftb_admin"))
 # THIS LOOKS FOR PARTIAL MATCHES
-print(dbUtils.ftbPartialMatchQuery("god_is_gay?\"", "yes", "ftb_admin"))
+print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
 
 # === delete field test data ===
 """example here:
@@ -22,7 +23,7 @@ is our user type
 # dbUtils.deleteMany("fieldTestType","agoodone","frontEndDB","metadataDefinition","ftb_admin")
 
 
-# === create new user === 
+# === create new user ===
 # un = "bigFatTool"
 # pw = "iamgay1"
 # name = "Zack Watkijns"
@@ -36,9 +37,3 @@ is our user type
 
 # # === update user passwords ===
 # dbUtils.updateUserPW("mattMorrison","password","ftb_admin")
-
-
-
-
-
-
