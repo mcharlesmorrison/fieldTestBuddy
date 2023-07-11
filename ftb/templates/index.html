@@ -2,8 +2,12 @@
 {% block body %}
 <p>Bikes bikes bikes</p>
 <div class="column">
-  <a href="/login">Login</a>
-  <a href="/logout">Logout</a>
+  {% if username is none %}
+    <a href="/login">Login</a>
+  {% else %}
+    <p>Logged in as {{ username }}</p>
+    <a href="/logout">Logout</a>
+  {% endif %}
   <a href="/field_test/query">Search for field tests</a>
   <a href="/field_test/create">create field test</a>
   <a href="/field_test/select_field_test">upload field test</a>

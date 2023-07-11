@@ -31,7 +31,6 @@ from ftb.forms import (
 import ftb.dbUtilities as dbUtils
 
 
-
 application = Flask(__name__)
 
 # NOTE need to enforce https
@@ -48,7 +47,7 @@ mock_field_test_db: Dict[str, List[Any]] = dict()
 
 @application.route("/")
 def home():
-    return render_template("index.html")
+    return render_template("index.html", username=session.get("username", None))
 
 
 @application.route("/login", methods=["GET", "POST"])
