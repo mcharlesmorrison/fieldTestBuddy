@@ -108,6 +108,7 @@ def mongoMakePost(metadata: dict, databaseName, collectionName, userType):
     else:
         collection.insert_one(metadata)
 
+
 def getDocument(
     queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str
 ):
@@ -281,7 +282,7 @@ def ftbQuery(queryBy: str, key: str, userType):
         json.dump(queryMetadata, outfile)
 
     archiveName = tmpdir
-    shutil.make_archive(archiveName, "zip", tmpdir)
+    shutil.make_archive(str(archiveName), "zip", tmpdir)
     shutil.rmtree(tmpdir)
 
     return (str(tmpdir) + ".zip", queryMetadata)
@@ -332,7 +333,7 @@ def ftbPartialMatchQuery(queryBy: str, searchString: str, userType):
         json.dump(queryMetadata, outfile)
 
     archiveName = tmpdir
-    shutil.make_archive(archiveName, "zip", tmpdir)
+    shutil.make_archive(str(archiveName), "zip", tmpdir)
     shutil.rmtree(tmpdir)
 
     return (str(tmpdir) + ".zip", queryMetadata)
@@ -402,6 +403,7 @@ def getUser(un: str, userType: str):
     user = collection.find_one({"userName": un})
     return user
 
+
 def createUserDict(un, pw: str, name: str, org: str, userType: str, email: str):
     pw_hash = bcrypt.hashpw(str.encode(pw), bcrypt.gensalt()).decode("utf-8")
     return dict(
@@ -412,6 +414,7 @@ def createUserDict(un, pw: str, name: str, org: str, userType: str, email: str):
         userType=userType,
         email=email,
     )
+
 
 def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userType):
     collection = accessMongoCollection(dbU, colU, userType)
