@@ -1,8 +1,7 @@
 #! /usr/bin/env python3
 
-import os
 import json
-import argon2 as ag
+import bcrypt
 
 from pathlib import Path
 
@@ -17,6 +16,7 @@ from flask import (
     request,
     jsonify,
 )
+
 from werkzeug.utils import secure_filename
 
 from typing import Dict, List, Any
@@ -42,7 +42,7 @@ application = Flask(__name__)
 
 # TODO obviously change this!
 # do something like python -c 'import secrets; print(secrets.token_hex())'
-application.secret_key = os.environ["ftb_flask_secret"]
+application.secret_key = "jas;ldkjvhaskjdhff"  # os.environ["ftb_flask_secret"]
 application.config["UPLOAD_FOLDER"] = "/tmp/cass"
 
 User = Dict[str, Any]
@@ -60,14 +60,11 @@ def login():
     if "username" in session:
         flash("You are already logged in", "warning")
         return redirect(url_for("home"))
+
     form = LoginForm()
-    # form.validate_on_submit() checks if it's a POST request
-    # and if the form is valid
     if form.validate_on_submit():
-        # TODO Update this lol
-        ph = ag.PasswordHasher()
-        # get hash from db for form.username.data
         username = form.username.data
+
         user_data = dbUtils.getUser(username, "ftb_admin")
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
@@ -75,22 +72,9 @@ def login():
 
         user_hash = user_data["password"]
 
-        try:
-            ph.verify(user_hash, form.password.data)
-        except (
-            ag.exceptions.VerifyMismatchError,
-            ag.exceptions.VerificationError,
-        ):
+        if not bcrypt.checkpw(form.password.data, user_hash):
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("home"))
-        except ag.exceptions.InvalidHash:
-            flash("something has gone wrong; please try again!", "danger")
-            return redirect(url_for("home"))
-
-        if ph.check_needs_rehash(user_hash):
-            ph.hash(form.password.data)
-            # TODO Update password w/ new hash sometimes
-            # do somethign like `db.set_password_hash_for_user(user, new_hash)`
 
         # set user session (keeps them logged in etc)
         # handles cryptography so the user can't modify their session :O
@@ -98,7 +82,7 @@ def login():
         session["userType"] = user_data["userType"]
 
         flash(f"Logged in as {username}!", "success")
-        user_data["userType"] == "ftb_admin"
+
         application.logger.info(
             f"{username} logged in with {user_data['userType']} privileges"
         )
@@ -110,12 +94,14 @@ def login():
 
 @application.route("/logout")
 def logout():
-    maybe_username = session.pop("username", None)
     session.pop("userType", None)
+
+    maybe_username = session.pop("username", None)
     if maybe_username is not None:
         flash("logged out", "success")
     else:
         flash("you were not logged in", "warning")
+
     return redirect(url_for("home"))
 
 

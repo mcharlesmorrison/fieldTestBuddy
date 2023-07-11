@@ -5,7 +5,7 @@ import uuid
 import boto3
 import shutil
 import certifi
-import argon2 as ag
+
 from pathlib import Path
 from pymongo import MongoClient
 
@@ -107,7 +107,6 @@ def mongoMakePost(metadata: dict, databaseName, collectionName, userType):
     else:
         collection.insert_one(metadata)
 
-
 def getDocument(
     queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str
 ):
@@ -149,7 +148,7 @@ def deleteMany(
     if numToDelete != mongoSuccess.deleted_count and myCollection == col:
         print("Error: items deleted does not equal number queried")
         return False
-    if numToDelete == mongoSuccess.deleted_count and s3Success != None:
+    if numToDelete == mongoSuccess.deleted_count and s3Success is not None:
         return True
     return True
 
@@ -209,8 +208,10 @@ def ftbDbUpload(filepath: str, filename: str, metadata: dict, userType):
 
     mongoMakePost(metadata, dbFT, colFT, userType)
     os.rename(Path(filepath, filename), Path(filepath, uuidFilename))
-    _ftbBucketUpload(filepath, uuidFilename, userType)
-    os.rename(Path(filepath, uuidFilename), Path(filepath, filename))
+    try:
+        _ftbBucketUpload(filepath, uuidFilename, userType)
+    finally:
+        os.rename(Path(filepath, uuidFilename), Path(filepath, filename))
 
 
 def _ftbBucketUpload(filepath, filename, userType):
@@ -220,12 +221,7 @@ def _ftbBucketUpload(filepath, filename, userType):
     #  - Check what happens when you try to upload something that is already in the bucket!!!
     s3 = createBoto3Client(userType)
     ftb_bucket = s3.Bucket(name=bucketName)
-    try:
-        ftb_bucket.upload_file(Path(filepath, filename), filename)
-        upload_success = True
-    except:
-        upload_success = False
-    return upload_success
+    ftb_bucket.upload_file(Path(filepath, filename), filename)
 
 
 # QUERYING FUNCTIONS
@@ -405,14 +401,15 @@ def getUser(un: str, userType):
     user = collection.find_one({"username": un})
     return user
 
-
-def createUserDict(un, pw, name, org, userType, email):
-    pw = ag.PasswordHasher().hash(pw)
-    userDict = dict(
-        userName=un, password=pw, name=name, org=org, userType=userType, email=email
+def createUserDict(un, pw_hash, name, org, userType, email):
+    return dict(
+        userName=un,
+        password=pw_hash,
+        name=name,
+        org=org,
+        userType=userType,
+        email=email,
     )
-    return userDict
-
 
 def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userType):
     collection = accessMongoCollection(dbU, colU, userType)
@@ -422,12 +419,11 @@ def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userTyp
     return mongoSuccess
 
 
-def updateUserPW(un, newPW, userType):
-    newPW = ag.PasswordHasher().hash(newPW)
+def updateUserPW(un, pw_hash, userType):
     return updateUser(
         queryBy="username",
         key=un,
         updateField="password",
-        updateVal=newPW,
+        updateVal=pw_hash,
         userType=userType,
     )
