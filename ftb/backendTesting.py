@@ -1,4 +1,4 @@
-import dbUtilities as dbUtils
+import ftb.dbUtilities as dbUtils
 
 # Existing passwords:
 # mattMorrison pw=password
@@ -16,7 +16,7 @@ print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
 
 # === delete field test data ===
 """example here:
-query by "fieldTestType" so we get rid of all field tsts of type "agoodone", then we 
+query by "fieldTestType" so we get rid of all field tsts of type "agoodone", then we
 select the "frontEndDB" database and the "metadataDefinition" collection, "ftb_admi"
 is our user type
 """

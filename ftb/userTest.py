@@ -1,5 +1,5 @@
 # USER DB TESTING BITCHEZ!!!
-import dbUtilities as dbUtils
+import ftb.dbUtilities as dbUtils
 
 un = "bigFatTool"
 pw = "iamgay1"
