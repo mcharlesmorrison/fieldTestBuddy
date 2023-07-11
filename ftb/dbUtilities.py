@@ -107,14 +107,17 @@ def mongoMakePost(metadata: dict, databaseName, collectionName, userType):
     else:
         collection.insert_one(metadata)
 
-
-def getDocument(queryBy: str, id: str, myDatabase: str, myCollection: str, userType):
+def getDocument(
+    queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str
+):
     collection = accessMongoCollection(myDatabase, myCollection, userType)
     document = collection.find_one({queryBy: id})
     return document
 
 
-def deleteMany(queryBy: str, id: str, myDatabase: str, myCollection: str, userType):
+def deleteMany(
+    queryBy: str, id: str, myDatabase: str, myCollection: str, userType: str
+):
     if userType == "ftb_engineer" or userType == "ftb_admin":
         db = "fieldTestDB"
         col = "fieldTestMD"
@@ -283,6 +286,75 @@ def ftbQuery(queryBy: str, key: str, userType):
     return (str(tmpdir) + ".zip", queryMetadata)
 
 
+def ftbPartialMatchQuery(queryBy: str, searchString: str, userType):
+    collection = accessMongoCollection(dbFT, colFT, userType)
+    query = {queryBy: {"$regex": f".*{searchString}.*"}}
+
+    queryMetadata = list(collection.find(query))
+
+    # now pull file from s3 bucket
+    s3 = createBoto3Client(userType)
+    ftb_bucket = s3.Bucket(name=bucketName)
+    curdir = Path.cwd()
+
+    # create directory
+    tmpdir = Path(curdir, "tmp_{}".format(int(time.time())))
+    # tmpdir = Path(curdir, "tmp") #ATTN may need debug
+    tmpdir.mkdir(exist_ok=True)
+
+    # create field test subdirectories
+    fieldTests = set([item["fieldTestName"] for item in queryMetadata])
+    for fieldTestName in fieldTests:
+        # create field test subdir
+        testDir = Path(tmpdir, fieldTestName)
+        testDir.mkdir(exist_ok=True)
+
+        # dump metadata to ft folder
+        ftLevelMetadata = [
+            item for item in queryMetadata if item["fieldTestName"] == fieldTestName
+        ]
+        metadataFilename = fieldTestName + "_metadata.json"
+        jsonFilepath = Path(testDir, metadataFilename)
+        with open(jsonFilepath, "w") as outfile:
+            json.dump(ftLevelMetadata, outfile)
+
+    for item in queryMetadata:
+        ftb_bucket.download_file(item["filename"], item["filename"])
+        # put file in appropriate field test subdirectory
+        Path(curdir, item["filename"]).rename(
+            Path(tmpdir, item["fieldTestName"], item["filename"])
+        )
+
+    # store metadata in local json file
+    jsonFilepath = Path(tmpdir, "metadata.json")
+    with open(jsonFilepath, "w") as outfile:
+        json.dump(queryMetadata, outfile)
+
+    archiveName = tmpdir
+    shutil.make_archive(archiveName, "zip", tmpdir)
+    shutil.rmtree(tmpdir)
+
+    return (str(tmpdir) + ".zip", queryMetadata)
+
+
+def getUniqueFieldNames(userType: str):
+    collection = accessMongoCollection(dbFT, colFT, userType)
+    pipeline = [
+        {"$project": {"fields": {"$objectToArray": "$$ROOT"}}},
+        {"$unwind": "$fields"},
+        {"$group": {"_id": None, "uniqueFields": {"$addToSet": "$fields.k"}}},
+    ]
+
+    # Execute the pipeline
+    result = collection.aggregate(pipeline)
+
+    # Extract the unique field names from the result
+    distinct_fields = result.next()["uniqueFields"]
+
+    distinct_fields.remove("_id")
+    return distinct_fields
+
+
 """=========== FRONT END DB =========================================================================="""
 
 dbFE = "frontEndDB"
@@ -329,7 +401,6 @@ def getUser(un: str, userType):
     user = collection.find_one({"username": un})
     return user
 
-
 def createUserDict(un, pw_hash, name, org, userType, email):
     return dict(
         userName=un,
@@ -339,7 +410,6 @@ def createUserDict(un, pw_hash, name, org, userType, email):
         userType=userType,
         email=email,
     )
-
 
 def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userType):
     collection = accessMongoCollection(dbU, colU, userType)
