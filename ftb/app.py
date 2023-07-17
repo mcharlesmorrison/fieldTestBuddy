@@ -44,8 +44,6 @@ application.config["UPLOAD_FOLDER"] = "/tmp/cass"
 
 User = Dict[str, Any]
 
-mock_field_test_db: Dict[str, List[Any]] = dict()
-
 
 @application.route("/")
 def home():
@@ -263,9 +261,9 @@ def query():
 
 @application.route("/search")
 def search():
-    query = request.args.get("query")
+    filter_ = request.args.get("filter")
     field = request.args.get("field")
-    print(field, query)
+    print(field, filter)
     # TODO HOW do you filter by query
     #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
     return jsonify([{"field_test_name": k, **v} for k, v in mock_field_test_db.items()])

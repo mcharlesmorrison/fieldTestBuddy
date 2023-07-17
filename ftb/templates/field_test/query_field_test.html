@@ -17,7 +17,7 @@
     {% endfor %}
   </select>
 
-  <input type="text" id="search_value" placeholder="search...">
+  <input type="text" id="search_value" placeholder="filter...">
 
   <ul id="results"></ul>
 </div>
@@ -28,7 +28,7 @@
       url: '/search',
       data: {
         field: $('#field_name').val(),
-        query: $('#search_value').val(),
+        filter: $('#filter_value').val(),
       },
       type: 'GET',
       success: (response) => {
