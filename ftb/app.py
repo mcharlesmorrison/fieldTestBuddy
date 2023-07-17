@@ -4,6 +4,7 @@ import json
 import bcrypt
 
 from pathlib import Path
+from contextlib import contextmanager
 
 from flask import (
     Flask,
@@ -33,7 +34,8 @@ import ftb.dbUtilities as dbUtils
 
 application = Flask(__name__)
 
-# NOTE need to enforce https
+# TODO need to enforce https
+# TODO need server-side sessions
 
 # TODO obviously change this!
 # do something like python -c 'import secrets; print(secrets.token_hex())'
@@ -93,8 +95,6 @@ def logout():
     maybe_username = session.pop("username", None)
     if maybe_username is not None:
         flash("logged out", "success")
-    else:
-        flash("you were not logged in", "warning")
 
     return redirect(url_for("home"))
 
@@ -114,14 +114,13 @@ def create_field_test():
     # need to check that username can access admin for org
     # this is probably not how we want to do this, but this
     # gives an idea of what we have to do here
-    is_admin = session["userType"] == "ftb_admin"
+    is_admin = session["userType"] in ("ftb_admin", "casslabsadmin")
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
 
     form = CreateFieldTestForm()
 
-    # FIXME hack
     if form.errors:
         flash(form.errors, "danger")
 
@@ -160,10 +159,6 @@ def create_field_test():
 
 @application.route("/field_test/select_field_test", methods=["GET", "POST"])
 def select_field_test():
-    """
-    this is "U1" in the wireframes
-    """
-
     if "username" not in session:
         flash("You must be logged in to upload a field test", "danger")
         return redirect(url_for("login"))
@@ -253,12 +248,24 @@ def query():
         flash("You must be logged in to search for field tests", "danger")
         return redirect(url_for("login"))
 
-    return render_template("field_test/query_field_test.html")
+    is_admin = session["userType"] in ("ftb_admin", "casslabsadmin")
+    if not is_admin:
+        flash("You must be logged in as an admin to create a field test", "danger")
+        return redirect(url_for("home"))
+
+    field_names = dbUtils.getUniqueFieldNames(session["userType"])
+    if len(field_names) == 0:
+        flash("No field tests found", "danger")
+        return redirect(url_for("home"))
+
+    return render_template("field_test/query_field_test.html", field_names=field_names)
 
 
 @application.route("/search")
 def search():
-    request.args.get("query")
+    query = request.args.get("query")
+    field = request.args.get("field")
+    print(field, query)
     # TODO HOW do you filter by query
     #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
     return jsonify([{"field_test_name": k, **v} for k, v in mock_field_test_db.items()])

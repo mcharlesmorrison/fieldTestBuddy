@@ -7,10 +7,19 @@ import bcrypt
 import shutil
 import certifi
 
+from enum import Enum
 from pathlib import Path
+from typing import Literal
 from pymongo import MongoClient
 
 """=========== PERMISSIONS ================================================================"""
+
+UserTypes = Literal[
+    "ftb_field_tester",
+    "ftb_engineer",
+    "ftb_admin",
+    "casslabsadmin",
+]
 
 
 def getMongoUN(userType="casslabsadmin"):
@@ -417,6 +426,10 @@ def createUserDict(un, pw: str, name: str, org: str, userType: str, email: str):
 
 
 def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userType):
+    # if it's a password, hash it
+    if updateField == "password":
+        updateVal = bcrypt.hashpw(updateVal, bcrypt.gensalt()).decode("utf-8")
+
     collection = accessMongoCollection(dbU, colU, userType)
     mongoSuccess = collection.update_one(
         {queryBy: key}, {"$set": {updateField: updateVal}}
@@ -424,12 +437,12 @@ def updateUser(queryBy: str, key: str, updateField: str, updateVal: str, userTyp
     return mongoSuccess
 
 
-def updateUserPW(un, pw_hash, userType):
-    # need to encode pw_hash as string
+def updateUserPW(un, pw, userType):
+    pw_hash = bcrypt.hashpw(str.encode(pw), bcrypt.gensalt()).decode("utf-8")
     return updateUser(
         queryBy="username",
         key=un,
         updateField="password",
-        updateVal=str.encode(pw_hash),
+        updateVal=pw_hash,
         userType=userType,
     )
