@@ -1,6 +1,6 @@
 # Back End Guide
 
-Relevant notes for backend functions. Note: there is a "backendTestin.py" file that can be used to test all these utility functions, and to clean up databases while we are uploading lots of shit that we'll want to delete.
+Relevant notes for backend functions. Note: there is a "testingScript.py" file that can be used to test all these utility functions, and to clean up databases while we are uploading lots of shit that we'll want to delete.
 
 ## New/Relevant Functions
 
