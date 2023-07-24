@@ -1,5 +1,5 @@
 # USER DB TESTING BITCHEZ!!!
-import ftb.dbUtilities as dbUtils
+import dbUtilities as dbUtils
 
 # Existing passwords:
 # mattMorrison pw=password
@@ -10,7 +10,7 @@ import ftb.dbUtilities as dbUtils
 # print(dbUtils.getUniqueFieldNames("ftb_admin"))
 
 # === querying ===
-#  THIS LOOOKS FOR EXACT MATCHED
+#  THIS LOOKS FOR EXACT MATCHED
 # print(dbUtils.ftbQuery("god_is_gay?\"", "yes?", "ftb_admin"))
 # THIS LOOKS FOR PARTIAL MATCHES
 print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
@@ -47,8 +47,8 @@ email = "zackwatkins604@gmail.com"
 org = "Cass Labs"
 userType = "ftb_admin"
 
-userDict = dbUtils.createUserDict(un, pw, name, org, userType, email)
-dbUtils.userDBUpload(userDict, "ftb_admin")
+# userDict = dbUtils.createUserDict(un, pw, name, org, userType, email)
+# dbUtils.userDBUpload(userDict, "ftb_admin")
 # mattMorrison pw=password
 # axelJacobsen pw=iamgay1
 # new pw: password
@@ -161,9 +161,9 @@ userType = "ftb_admin"
 # print(tmpdir)
 
 
-metadataDef = dict(fieldTestType="agoodone", shit="shite!")
-dbUtils.metadataDefUpload(metadataDef, "ftb_admin")
-print(dbUtils.getMetadataDef("agoodone", "ftb_admin"))
-dbUtils.deleteMany(
-    "fieldTestType", "agoodone", "frontEndDB", "metadataDefinition", "ftb_admin"
-)
+# metadataDef = dict(fieldTestType="agoodone", shit="shite!")
+# dbUtils.metadataDefUpload(metadataDef, "ftb_admin")
+# print(dbUtils.getMetadataDef("agoodone", "ftb_admin"))
+# dbUtils.deleteMany(
+#     "fieldTestType", "agoodone", "frontEndDB", "metadataDefinition", "ftb_admin"
+# )

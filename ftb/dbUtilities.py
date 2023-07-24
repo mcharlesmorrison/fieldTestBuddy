@@ -302,6 +302,13 @@ def ftbPartialMatchQuery(queryBy: str, searchString: str, userType):
     query = {queryBy: {"$regex": f".*{searchString}.*"}}
 
     queryMetadata = list(collection.find(query))
+    return queryMetadata
+
+def ftbPartialMatchDownload(queryBy: str, searchString: str, userType):
+    collection = accessMongoCollection(dbFT, colFT, userType)
+    query = {queryBy: {"$regex": f".*{searchString}.*"}}
+
+    queryMetadata = list(collection.find(query))
 
     # now pull file from s3 bucket
     s3 = createBoto3Client(userType)

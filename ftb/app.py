@@ -242,21 +242,40 @@ def upload_field_test(field_test_type):
 
 @application.route("/field_test/query", methods=["GET", "POST"])
 def query():
+    print("in query!")
     if "username" not in session:
         flash("You must be logged in to search for field tests", "danger")
         return redirect(url_for("login"))
-
-    is_admin = session["userType"] in ("ftb_admin", "casslabsadmin")
+    
+    user_type = session["userType"]
+    is_admin = user_type in ("ftb_admin", "casslabsadmin")
+    
     if not is_admin:
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
 
-    field_names = dbUtils.getUniqueFieldNames(session["userType"])
+    field_names = dbUtils.getUniqueFieldNames(user_type)
     if len(field_names) == 0:
         flash("No field tests found", "danger")
         return redirect(url_for("home"))
 
-    return render_template("field_test/query_field_test.html", field_names=field_names)
+    print("Request Method: ", request.method)
+    results_fieldTests = []
+    # Handle the search query
+    print(request.form)
+    if request.method == "POST":
+        if "download_tests" in request.form:
+            print("download starts here!")
+            return jsonify(message="Download started.")
+        else:
+            selected_field = request.form.get("field_name")
+            search_value = request.form.get("search_value")
+            results = dbUtils.ftbPartialMatchQuery(selected_field, search_value, user_type)
+            results_fieldTests = list({result["fieldTestName"] for result in results})
+
+
+    return render_template("field_test/query_field_test.html", 
+                           field_names=field_names, results_fieldTests=results_fieldTests) 
 
 
 @application.route("/search")
