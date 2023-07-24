@@ -183,6 +183,11 @@ def select_field_test():
     return render_template("field_test/select_field_test.html", form=field_test_form)
 
 
+ALLOWED_EXTENSIONS = {"csv", "xls", "bin", "txt"}
+
+def allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+
 @application.route(
     "/field_test/upload_field_test/<field_test_type>", methods=["GET", "POST"]
 )
@@ -214,7 +219,7 @@ def upload_field_test(field_test_type):
 
         filenames = []
         for file in request.files.getlist("folderupload"):
-            if file:
+            if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(str(Path(application.config["UPLOAD_FOLDER"]) / filename))
                 filenames.append(Path(application.config["UPLOAD_FOLDER"]) / filename)
