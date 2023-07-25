@@ -10,45 +10,36 @@
 
 <div class="col">
   <h1>Query Field Test</h1>
-  <label for="field_name">Query for</label>
-  <select id="field_name">
-    {% for field_name in field_names %}
-    <option value="{{ field_name }}">{{ field_name }}</option>
+  
+  <form method="POST" action="/field_test/query">  <!-- Added 'action' attribute -->
+    <label for="field_name">Query for</label>
+    <select id="field_name" name="field_name">  <!-- Added 'name' attribute -->
+      {% for field_name in field_names %}
+      <option value="{{ field_name }}">{{ field_name }}</option>
+      {% endfor %}
+    </select>
+
+    <input type="text" id="search_value" name="search_value" placeholder="filter...">  <!-- Added 'name' attribute -->
+
+    <button type="submit" class="btn btn-primary">Search</button>
+  </form>
+
+  <ul class="list-group list-group-flush" id="results">
+    {% for name in results_fieldTests%}
+    <li class="list-group-item">
+      {{ name }}
+    </li>
     {% endfor %}
-  </select>
+  </ul>
+  
+  <form method="POST" action="/field_test/query">
+    <!-- ... Your form elements ... -->
+    {% if results_fieldTests %}
+    <button type="submit" name="download_tests" class="btn btn-primary">Download Tests</button>
+    {% endif %}
+  </form>
 
-  <input type="text" id="search_value" placeholder="filter...">
-
-  <ul id="results"></ul>
 </div>
 
-<script>
-  const searchdb = () => {
-    $.ajax({
-      url: '/search',
-      data: {
-        field: $('#field_name').val(),
-        filter: $('#filter_value').val(),
-      },
-      type: 'GET',
-      success: (response) => {
-        let results = $('#results');
-        results.empty();
-        if (response.length === 0) {
-          results.append('<li>No results found</li>');
-        } else {
-          $.each(response, (index, item) => {
-            results.append('<li>' + item + '</li>');
-          });
-        }
-      }
-    });
-  }
-
-  $(document).ready(() => {
-    $('#search_value').on('input', searchdb);
-    $('#field_name').on('input', searchdb);
-  });
-</script>
-
 {% endblock %}
+
