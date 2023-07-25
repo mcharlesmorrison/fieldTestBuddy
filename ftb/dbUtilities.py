@@ -6,12 +6,14 @@ import boto3
 import bcrypt
 import shutil
 import certifi
+import tempfile
 
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Literal
 from pymongo import MongoClient
-
+from flask import send_file
 """=========== PERMISSIONS ================================================================"""
 
 UserTypes = Literal[
@@ -248,17 +250,16 @@ def getftbTrail(trailName: str, userType):
     return (tmpDir, queryMetadata)
 
 
-def ftbQuery(queryBy: str, key: str, userType):
+def ftbQuery(queryBy: str, key: str, userType, app_dir):
     collection = accessMongoCollection(dbFT, colFT, userType)
     queryMetadata = list(collection.find({queryBy: key}))
 
     # now pull file from s3 bucket
     s3 = createBoto3Client(userType)
     ftb_bucket = s3.Bucket(name=bucketName)
-    curdir = Path.cwd()
 
     # create directory
-    tmpdir = Path(curdir, "tmp_{}".format(int(time.time())))
+    tmpdir = Path(app_dir, "tmp_{}".format(int(time.time())))
     # tmpdir = Path(curdir, "tmp") #ATTN may need debug
     tmpdir.mkdir(exist_ok=True)
 
@@ -281,7 +282,7 @@ def ftbQuery(queryBy: str, key: str, userType):
     for item in queryMetadata:
         ftb_bucket.download_file(item["filename"], item["filename"])
         # put file in appropriate field test subdirectory
-        Path(curdir, item["filename"]).rename(
+        Path(app_dir, item["filename"]).rename(
             Path(tmpdir, item["fieldTestName"], item["filename"])
         )
 
@@ -290,12 +291,65 @@ def ftbQuery(queryBy: str, key: str, userType):
     with open(jsonFilepath, "w") as outfile:
         json.dump(queryMetadata, outfile)
 
-    archiveName = tmpdir
-    shutil.make_archive(str(archiveName), "zip", tmpdir)
+    # TO DO will this work when hosted elsewhere???
+    shutil.make_archive(str(tmpdir), "zip", root_dir=tmpdir)
     shutil.rmtree(tmpdir)
+    print("archive name: ", tmpdir)
+    zip_name = str(tmpdir) + ".zip"
+    return zip_name
+    """
+    collection = accessMongoCollection(dbFT, colFT, userType)
+    print("Query by: ", queryBy)
+    print("Key: ", key)
+    queryMetadata = list(collection.find({queryBy: key}))
 
-    return (str(tmpdir) + ".zip", queryMetadata)
+    # now pull file from s3 bucket
+    s3 = createBoto3Client(userType)
+    ftb_bucket = s3.Bucket(name=bucketName)
 
+    with tempfile.TemporaryDirectory() as tmpdir:
+        # create field test subdirectories
+        fieldTests = set([item["fieldTestName"] for item in queryMetadata])
+        for fieldTestName in fieldTests:
+            
+            # create field test subdir
+            testDir = Path(tmpdir, fieldTestName)
+            testDir.mkdir(exist_ok=True)
+
+            # dump metadata to ft folder
+            ftLevelMetadata = [
+                item for item in queryMetadata if item["fieldTestName"] == fieldTestName
+            ]
+            metadataFilename = fieldTestName + "_metadata.json"
+            jsonFilepath = Path(testDir, metadataFilename)
+            with open(jsonFilepath, "w") as outfile:
+                json.dump(ftLevelMetadata, outfile)
+
+        for item in queryMetadata:
+            file_destination = os.path.join(tmpdir, item["fieldTestName"], item["filename"])
+            ftb_bucket.download_file(item["filename"], file_destination)
+            print("file_destination: ", file_destination)
+
+        # store metadata in local json file
+        jsonFilepath = Path(tmpdir, "metadata.json")
+        with open(jsonFilepath, "w") as outfile:
+            json.dump(queryMetadata, outfile)
+
+        now = datetime.now()
+        # Format the date and time without spaces
+        zip_name = "ftb" + now.strftime("%Y-%m-%d-%H-%M-%S")
+        shutil.make_archive(zip_name, "zip", app_dir)
+        zip_name = zip_name + '.zip'
+        zip_name = Path(app_dir, zip_name)
+        # Send the zip archive to the user for download
+        print("zip name: ", zip_name)
+        return send_file(
+            zip_name,
+            as_attachment=True,
+            attachment_filename="tests.zip",
+            mimetype="application/zip",
+            )
+        """
 
 def ftbPartialMatchQuery(queryBy: str, searchString: str, userType):
     collection = accessMongoCollection(dbFT, colFT, userType)
