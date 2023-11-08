@@ -2,6 +2,7 @@
 
 import json
 import bcrypt
+import os 
 
 from pathlib import Path
 from contextlib import contextmanager
@@ -16,6 +17,8 @@ from flask import (
     session,
     request,
     jsonify,
+    send_file,
+    after_this_request
 )
 
 from werkzeug.utils import secure_filename
@@ -266,52 +269,41 @@ def query():
 
     print("Request Method: ", request.method)
     results_fieldTests = []
+    test_downloaded = []
     # Handle the search query
     print(request.form)
     if request.method == "POST":
-        if "download_tests" in request.form:
-            print("download starts here!")
-            return jsonify(message="Download started.")
-        else:
+        if "search" in request.form:
             selected_field = request.form.get("field_name")
             search_value = request.form.get("search_value")
+            # store these in user session YAAHHH!!!
+            session["field_value_stored"] = selected_field
+            session["search_value_stored"] = search_value
             results = dbUtils.ftbPartialMatchQuery(selected_field, search_value, user_type)
+            # TODO: allow selection of field tests from list (and then explicitly download from selection?)
             results_fieldTests = list({result["fieldTestName"] for result in results})
+        elif "download_tests" in request.form:
+            print("download starts here!")
+            test_downloaded = True
+            print("QUERY BY: ", session.get("field_value_stored"))
+            print("QUERY VAL: ", session.get("search_value_stored"))
+            # TODO: do we need application path here?
+            zip_name = dbUtils.ftb_download(session.get("field_value_stored"), session.get("search_value_stored"), user_type, application.root_path)
 
+            @after_this_request # these are used to do things like "cleaning up" stuff we don't need after request is complete
+            def cleanup(response):
+                try:
+                    os.remove(zip_name)
+                except Exception as error:
+                    application.logger.error("Error removing or closing downloaded file handle", error)
+                return response
+
+            return send_file(os.path.basename(zip_name), as_attachment=True)
 
     return render_template("field_test/query_field_test.html", 
-                           field_names=field_names, results_fieldTests=results_fieldTests) 
+                           field_names=field_names, results_fieldTests=results_fieldTests, test_downloaded=test_downloaded) 
 
 
-@application.route("/search")
-def search():
-    filter_ = request.args.get("filter")
-    field = request.args.get("field")
-    print(field, filter)
-    # TODO HOW do you filter by query
-    #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
-    return jsonify([{"field_test_name": k, **v} for k, v in mock_field_test_db.items()])
-
-
-@application.route("/download")
-def download():
-    request.args.get("query")
-    # TODO HOW do you filter by query
-    #     results = Item.query.filter(Item.name.like(f'%{query}%')).all()?
-    results = mock_field_test_db
-    results_json = json.dumps(results)
-
-    response = make_response(results_json)
-    response.headers["Content-Disposition"] = "attachment; filename=results.json"
-    response.headers["Content-Type"] = "application/json"
-
-    # # Sending the zip file for download
-    # return send_file(zip_filename,
-    #              mimetype='application/zip',
-    #              as_attachment=True,
-    #              download_name=zip_filename)
-
-    return response
 
 
 if __name__ == "__main__":

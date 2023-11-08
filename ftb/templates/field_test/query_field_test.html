@@ -21,7 +21,7 @@
 
     <input type="text" id="search_value" name="search_value" placeholder="filter...">  <!-- Added 'name' attribute -->
 
-    <button type="submit" class="btn btn-primary">Search</button>
+    <button type="submit" name="search" class="btn btn-primary">Search</button>
   </form>
 
   <ul class="list-group list-group-flush" id="results">
@@ -38,6 +38,10 @@
     <button type="submit" name="download_tests" class="btn btn-primary">Download Tests</button>
     {% endif %}
   </form>
+
+  {% if test_downloaded %}
+    <p> Download Success!!!</p>
+  {% endif %}
 
 </div>
 
