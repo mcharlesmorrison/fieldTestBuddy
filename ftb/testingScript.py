@@ -1,6 +1,6 @@
 # USER DB TESTING BITCHEZ!!!
 import dbUtilities as dbUtils
-
+import os 
 # Existing passwords:
 # mattMorrison pw=password
 # axelJacobsen pw=iamgay1
@@ -13,8 +13,9 @@ import dbUtilities as dbUtils
 #  THIS LOOKS FOR EXACT MATCHED
 # print(dbUtils.ftbQuery("god_is_gay?\"", "yes?", "ftb_admin"))
 # THIS LOOKS FOR PARTIAL MATCHES
-print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
-
+# print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
+# dbUtils.ftbPartialMatchDownload('god_is_gay?"', "yes", "ftb_admin")
+dbUtils.ftbQuery("fieldTestName", "1", "ftb_admin", os.curdir)
 # === delete field test data ===
 """example here:
 query by "fieldTestType" so we get rid of all field tsts of type "agoodone", then we

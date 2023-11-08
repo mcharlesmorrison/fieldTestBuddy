@@ -241,18 +241,19 @@ def _ftbBucketUpload(filepath, filename, userType):
 
 
 def getftbFieldTest(fieldTestName: str, userType):
-    (tmpDir, queryMetadata) = ftbQuery("fieldTestName", fieldTestName, userType)
+    (tmpDir, queryMetadata) = ftb_download("fieldTestName", fieldTestName, userType)
     return (tmpDir, queryMetadata)
 
 
 def getftbTrail(trailName: str, userType):
-    (tmpDir, queryMetadata) = ftbQuery("trailName", trailName, userType)
+    (tmpDir, queryMetadata) = ftb_download("trailName", trailName, userType)
     return (tmpDir, queryMetadata)
 
 
-def ftbQuery(queryBy: str, key: str, userType, app_dir):
+def ftb_download(queryBy: str, key: str, userType, app_dir):
     collection = accessMongoCollection(dbFT, colFT, userType)
-    queryMetadata = list(collection.find({queryBy: key}))
+    query = {queryBy: {"$regex": f".*{key}.*"}}
+    queryMetadata = list(collection.find(query))
 
     # now pull file from s3 bucket
     s3 = createBoto3Client(userType)
@@ -260,7 +261,7 @@ def ftbQuery(queryBy: str, key: str, userType, app_dir):
 
     # create directory
     tmpdir = Path(app_dir, "tmp_{}".format(int(time.time())))
-    # tmpdir = Path(curdir, "tmp") #ATTN may need debug
+    # tmpdir = Path(curdir, "tmp") #TODO may need debug
     tmpdir.mkdir(exist_ok=True)
 
     # create field test subdirectories
@@ -280,7 +281,8 @@ def ftbQuery(queryBy: str, key: str, userType, app_dir):
             json.dump(ftLevelMetadata, outfile)
 
     for item in queryMetadata:
-        ftb_bucket.download_file(item["filename"], item["filename"])
+        download_path = Path(app_dir, item["filename"])
+        ftb_bucket.download_file(item["filename"], download_path)
         # put file in appropriate field test subdirectory
         Path(app_dir, item["filename"]).rename(
             Path(tmpdir, item["fieldTestName"], item["filename"])
@@ -367,8 +369,7 @@ def ftbPartialMatchDownload(queryBy: str, searchString: str, userType):
     # now pull file from s3 bucket
     s3 = createBoto3Client(userType)
     ftb_bucket = s3.Bucket(name=bucketName)
-    curdir = Path.cwd()
-
+    curdir = os.curdir
     # create directory
     tmpdir = Path(curdir, "tmp_{}".format(int(time.time())))
     # tmpdir = Path(curdir, "tmp") #ATTN may need debug
