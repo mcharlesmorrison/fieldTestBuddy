@@ -32,7 +32,7 @@ from ftb.forms import (
     SelectFieldTestForm,
 )
 
-import ftb.dbUtilities as dbUtils
+import ftb.db_utils as db_utils
 
 
 application = Flask(__name__)
@@ -62,7 +62,7 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         username = form.username.data
-        user_data = dbUtils.getUser(username, "ftb_admin")
+        user_data = db_utils.get_user(username, "ftb_admin")
         if user_data is None:
             flash("Login Unsuccessful. Please check username and password", "danger")
             return redirect(url_for("login"))
@@ -146,7 +146,7 @@ def create_field_test():
             },
         }
 
-        dbUtils.metadataDefUpload(field_test_defn, session["userType"])
+        db_utils.md_def_upload(field_test_defn, session["userType"])
 
         application.logger.info(
             f"field test defn created by {session['username']}: {field_test_defn}"
@@ -168,7 +168,7 @@ def select_field_test():
 
     field_test_form = SelectFieldTestForm()
 
-    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
+    field_test_types = db_utils.get_field_test_types(session["userType"])
     field_test_form.field_test_type.choices = field_test_types
 
     if field_test_form.validate_on_submit():
@@ -177,7 +177,7 @@ def select_field_test():
         # NOTE should we check that field_test_type is actually in db?
         #      though it should always since this is fm dropdown
         # TODO add field test to db, etc
-        flash("Field Test Selected!", "success")
+        flash("Field test type created!", "success") #TODO: what was this saying
         # TODO confirm field_test_type is valid unicode, or even better, choose
         # a different identifier for this (uuid?)
         return redirect(f"/field_test/upload_field_test/{field_test_type}")
@@ -204,7 +204,7 @@ def upload_field_test(field_test_type):
     )
 
     try:
-        field_test_defn = dbUtils.getMetadataDef(field_test_type, session["userType"])
+        field_test_defn = db_utils.get_md_def(field_test_type, session["userType"])
     except KeyError:
         flash("Invalid field test type", "danger")
         return redirect(url_for("select_field_test"))
@@ -230,14 +230,14 @@ def upload_field_test(field_test_type):
         metadata = [form_data for _ in range(len(filenames))]
 
         # TODO upload files to amazon s3
-        dbUtils.ftbDbUploadBulk(
+        db_utils.upload_many(
             application.config["UPLOAD_FOLDER"], metadata, session["userType"]
         )
 
         flash("Field Test Uploaded!", "success")
         return redirect(url_for("home"))
 
-    field_test_types = dbUtils.getFieldTestTypes(session["userType"])
+    field_test_types = db_utils.get_field_test_types(session["userType"])
 
     application.logger.info(f"field tests: {field_test_types}")
 
@@ -262,7 +262,7 @@ def query():
         flash("You must be logged in as an admin to create a field test", "danger")
         return redirect(url_for("home"))
 
-    field_names = dbUtils.getUniqueFieldNames(user_type)
+    field_names = db_utils.get_unique_field_names(user_type)
     if len(field_names) == 0:
         flash("No field tests found", "danger")
         return redirect(url_for("home"))
@@ -279,7 +279,7 @@ def query():
             # store these in user session YAAHHH!!!
             session["field_value_stored"] = selected_field
             session["search_value_stored"] = search_value
-            results = dbUtils.ftbPartialMatchQuery(selected_field, search_value, user_type)
+            results = db_utils.partial_match_query(selected_field, search_value, user_type)
             # TODO: allow selection of field tests from list (and then explicitly download from selection?)
             results_fieldTests = list({result["fieldTestName"] for result in results})
         elif "download_tests" in request.form:
@@ -288,7 +288,7 @@ def query():
             print("QUERY BY: ", session.get("field_value_stored"))
             print("QUERY VAL: ", session.get("search_value_stored"))
             # TODO: do we need application path here?
-            zip_name = dbUtils.ftb_download(session.get("field_value_stored"), session.get("search_value_stored"), user_type, application.root_path)
+            zip_name = db_utils.download(session.get("field_value_stored"), session.get("search_value_stored"), user_type, application.root_path)
 
             @after_this_request # these are used to do things like "cleaning up" stuff we don't need after request is complete
             def cleanup(response):
