@@ -1,5 +1,5 @@
 # USER DB TESTING BITCHEZ!!!
-import dbUtilities as dbUtils
+import ftb.db_utils as db_utils
 import os 
 # Existing passwords:
 # mattMorrison pw=password
@@ -7,164 +7,124 @@ import os
 
 
 # === get field names ===
-# print(dbUtils.getUniqueFieldNames("ftb_admin"))
 
-# === querying ===
-#  THIS LOOKS FOR EXACT MATCHED
-# print(dbUtils.ftbQuery("god_is_gay?\"", "yes?", "ftb_admin"))
-# THIS LOOKS FOR PARTIAL MATCHES
-# print(dbUtils.ftbPartialMatchQuery('god_is_gay?"', "yes", "ftb_admin"))
-# dbUtils.ftbPartialMatchDownload('god_is_gay?"', "yes", "ftb_admin")
-dbUtils.ftbQuery("fieldTestName", "1", "ftb_admin", os.curdir)
+# print(db_utils.get_unique_field_names("ftb_admin"))
+
+
+# === query + download ===
+
+#  exact match
+# print(db_utils.exact_match_query("god_is_gay?\"", "yes?", "ftb_admin"))
+
+# partial match
+# print(db_utils.partial_match_query('god_is_gay?"', "yes", "ftb_admin"))
+
+# download
+# db_utils.download('god_is_gay?"', "yes", "ftb_admin")
+
 # === delete field test data ===
 """example here:
-query by "fieldTestType" so we get rid of all field tsts of type "agoodone", then we
-select the "frontEndDB" database and the "metadataDefinition" collection, "ftb_admi"
+query by "fieldTestType" so we get rid of all field tests of type "agoodone", then we
+select the "frontEndDB" database and the "md_definition" collection, "ftb_admi"
 is our user type
 """
-# dbUtils.deleteMany("fieldTestType","agoodone","frontEndDB","metadataDefinition","ftb_admin")
+
+# db_utils.delete_many("fieldTestType","agoodone","frontEndDB","md_definition","ftb_admin")
 
 
 # === create new user ===
+
 # un = "bigFatTool"
 # pw = "iamgay1"
 # name = "Zack Watkijns"
 # email = "zackwatkins604@gmail.com"
 # org = "Cass Labs"
-# userType = "ftb_admin"
+# user_type = "ftb_admin"
 
-# userDict = dbUtils.createUserDict(un, pw, name, org, userType, email)
-# dbUtils.userDBUpload(userDict,"ftb_admin")
+# userDict = db_utils.create_user_dict(un, pw, name, org, user_type, email)
+# db_utils.user_db_upload(userDict,"ftb_admin")
 
 
 # # === update user passwords ===
-# dbUtils.updateUserPW("mattMorrison","password","ftb_admin")
+# db_utils.update_user_pw("mattMorrison","password","ftb_admin")
 
-
-un = "bigFatTool"
-pw = "iamgay1"
-name = "Zack Watkijns"
-email = "zackwatkins604@gmail.com"
-org = "Cass Labs"
-userType = "ftb_admin"
-
-# userDict = dbUtils.createUserDict(un, pw, name, org, userType, email)
-# dbUtils.userDBUpload(userDict, "ftb_admin")
 # mattMorrison pw=password
 # axelJacobsen pw=iamgay1
-# new pw: password
-# dbUtils.updateUserPW("mattMorrison","password","ftb_admin")
 
 
 # UPLOADING SHITE
 
-projectName = "My Nigerian"
-fieldTestName = "Hello World 1"
-runName1 = "run 1"
-runName2 = "run 2"
-runName3 = "run 3"
-runName4 = "run 4"
-runName5 = "run 5"
-runName6 = "run 6"
-runName7 = "run 7"
-location = "Santa Cruz"
-trailNetwork = "Campus"
-trailName1 = "Dustys"
-trailName2 = "Silver Surfer"
-trailName3 = "Grandpa"
-trailName4 = "Wizard Sleeve"
-trailName5 = "Jungle Drop"
-trailName6 = "Jungle Drop"
-trailName7 = "Chup"
+# projectName = "My Nigerian"
+# fieldTestName = "Hello World 1"
+# runName1 = "run 1"
+# runName2 = "run 2"
+# location = "Santa Cruz"
+# trailNetwork = "Campus"
+# trailName1 = "Dustys"
+# trailName2 = "Silver Surfer"
 
-bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
-bikeSetup = "NA"
-riderName = "Matt Morrison"
-riderHeight = 1.95
-riderWeight = 84
-# loggerID = "cl00"; fwVer = 0.00
-sensorIDs = ["pot200", "pot100", "reed_01", "button"]
-sensorPositions = ["A", "B", "C", "D"]
-notes = "NA"
-rotLogger = 0.9162979
+# bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
+# bikeSetup = "NA"
+# riderName = "Matt Morrison"
+# riderHeight = 1.95
+# riderWeight = 84
+# # loggerID = "cl00"; fwVer = 0.00
+# sensorIDs = ["pot200", "pot100", "reed_01", "button"]
+# sensorPositions = ["A", "B", "C", "D"]
+# notes = "NA"
+# rotLogger = 0.9162979
 
-metadata1 = dict(
-    projectName=projectName,
-    fieldTestName=fieldTestName,
-    runName=runName1,
-    location=location,
-    trailNetwork=trailNetwork,
-    trailName=trailName1,
-    bikeID=bikeID,
-    bikeSetup=bikeSetup,
-    riderName=riderName,
-    riderHeight=riderHeight,
-    riderWeight=riderWeight,
-    sensorIDs=sensorIDs,
-    sensorPositions=sensorPositions,
-    notes=notes,
-    rotLogger=rotLogger,
-)
-metadata2 = dict(
-    projectName=projectName,
-    fieldTestName=fieldTestName,
-    runName=runName2,
-    location=location,
-    trailNetwork=trailNetwork,
-    trailName=trailName2,
-    bikeID=bikeID,
-    bikeSetup=bikeSetup,
-    riderName=riderName,
-    riderHeight=riderHeight,
-    riderWeight=riderWeight,
-    sensorIDs=sensorIDs,
-    sensorPositions=sensorPositions,
-    notes=notes,
-    rotLogger=rotLogger,
-)
-metadata3 = dict(
-    projectName=projectName,
-    fieldTestName=fieldTestName,
-    runName=runName3,
-    location=location,
-    trailNetwork=trailNetwork,
-    trailName=trailName3,
-    bikeID=bikeID,
-    bikeSetup=bikeSetup,
-    riderName=riderName,
-    riderHeight=riderHeight,
-    riderWeight=riderWeight,
-    sensorIDs=sensorIDs,
-    sensorPositions=sensorPositions,
-    notes=notes,
-    rotLogger=rotLogger,
-)
+# metadata1 = dict(
+#     projectName=projectName,
+#     fieldTestName=fieldTestName,
+#     runName=runName1,
+#     location=location,
+#     trailNetwork=trailNetwork,
+#     trailName=trailName1,
+#     bikeID=bikeID,
+#     bikeSetup=bikeSetup,
+#     riderName=riderName,
+#     riderHeight=riderHeight,
+#     riderWeight=riderWeight,
+#     sensorIDs=sensorIDs,
+#     sensorPositions=sensorPositions,
+#     notes=notes,
+#     rotLogger=rotLogger,
+# )
+# metadata2 = dict(
+#     projectName=projectName,
+#     fieldTestName=fieldTestName,
+#     runName=runName2,
+#     location=location,
+#     trailNetwork=trailNetwork,
+#     trailName=trailName2,
+#     bikeID=bikeID,
+#     bikeSetup=bikeSetup,
+#     riderName=riderName,
+#     riderHeight=riderHeight,
+#     riderWeight=riderWeight,
+#     sensorIDs=sensorIDs,
+#     sensorPositions=sensorPositions,
+#     notes=notes,
+#     rotLogger=rotLogger,
+# )
 
 """ FTB UPLOADING TO DB """
-postData = [metadata1, metadata2, metadata3]
-userType = "ftb_admin"
-# userType = "ftb_field_tester"
-# myUser = userDB.getUser("mattMorrison", "ftb_engineer_admin")
-# print(myUser["userType"])
-# userType = "casslabsadmin"
+# post_data = [metadata1, metadata2]
+# user_type = "ftb_admin"
+# user_type = "ftb_field_tester"
+# my_user = db_utils.get_user("mattMorrison", "ftb_engineer_admin")
+# print(my_user["user_type"])
 
 # filepath = "/Users/mattmorrison/Desktop/ftb/foxExports"
-# ftbDB.ftbDbUploadBulk(filepath,postData,userType)
-
-# fieldTestName = "Hello World 2"
-# [tmpdir, fieldTestMetadata] = ftbDB.getftbFieldTest(fieldTestName, userType)
-# print("my nigerian")
-# print(dbUtils.deleteMany("fieldTestName","Hello World 1", "fieldTestDB", "fieldTestMD",userType))
-
-# generic   query test
-# bikeID = "9098dad7-bf07-432c-93de-c46af6f3819c"
-# [tmpdir, queryMetadata] = ftbDB.ftbQuery("bikeID",bikeID,userType)
-# print(tmpdir)
+# db_utils.upload_many(filepath,post_data,user_type)
 
 
-# metadataDef = dict(fieldTestType="agoodone", shit="shite!")
-# dbUtils.metadataDefUpload(metadataDef, "ftb_admin")
-# print(dbUtils.getMetadataDef("agoodone", "ftb_admin"))
-# dbUtils.deleteMany(
-#     "fieldTestType", "agoodone", "frontEndDB", "metadataDefinition", "ftb_admin"
+# === metadata definition ===
+
+# md_def = dict(fieldTestType="agoodone", shit="shite!")
+# db_utils.md_def_upload(md_def, "ftb_admin")
+# print(db_utils.get_md_def("agoodone", "ftb_admin"))
+# db_utils.delete_many(
+#     "fieldTestType", "agoodone", "frontEndDB", "md_definition", "ftb_admin"
 # )
